@@ -7,14 +7,16 @@ import { openDialog } from '../ui/dialog.js';
 import { toast } from '../ui/toast.js';
 import { renderParagraphs } from '../ui/richtext.js';
 import { t, pick, isFallback, formatDate, num } from '../i18n/index.js';
-import { getLaw, getSections, getCategory, subscribe } from '../core/content.js';
+import { getLaw, getSections, getCategory, subscribe, loadSections } from '../core/content.js';
 import { getAuth } from '../core/auth.js';
 import { supabase, errorCode } from '../core/supabase.js';
 import { logError } from '../core/logger.js';
+import { uuidFromString } from '../lib/text.js';
 
 export default function render({ params, navigate }) {
   const root = h('div', { class: 'page' });
   const lawId = params.id;
+  let sectionsState = 'loading'; // loading | ready | failed
 
   function paint() {
     root.replaceChildren();
@@ -57,16 +59,30 @@ export default function render({ params, navigate }) {
 
     const sections = getSections(law.id);
     root.appendChild(h('h3', { class: 'h3' }, t('law.sections')));
-    if (!sections.length) {
+    if (sectionsState === 'loading' && law.section_count) {
+      root.appendChild(h('p', { class: 'muted' }, icon('refresh', 'icon-inline'), t('law.loading')));
+    } else if (sectionsState === 'failed') {
+      root.appendChild(banner(t('law.loadFailed'), { tone: 'warning', iconName: 'alert' }));
+    } else if (!sections.length) {
       root.appendChild(h('p', { class: 'muted' }, t('law.noSections')));
     } else {
-      root.appendChild(h('div', { class: 'accordion' }, sections.map((s) => sectionItem(s, law, navigate))));
+      root.appendChild(h('div', { class: 'accordion' }, sections.map((s, i) => sectionItem(s, law, navigate, i > 0 ? sections[i - 1] : null))));
     }
 
     root.appendChild(h('p', { class: 'fineprint' }, icon('info', 'icon-inline'), t('law.disclaimerShort')));
   }
 
   paint();
+  loadSections(lawId)
+    .then(() => {
+      sectionsState = 'ready';
+      paint();
+    })
+    .catch((err) => {
+      logError(err, { where: 'law.loadSections' });
+      sectionsState = 'failed';
+      paint();
+    });
   const unsubscribe = subscribe(paint);
   const law = getLaw(lawId);
   return { el: root, title: law ? pick(law, 'title') : t('nav.laws'), destroy: unsubscribe };
@@ -76,8 +92,10 @@ function factRow(label, value) {
   return h('div', { class: 'fact' }, h('dt', null, label), h('dd', null, value));
 }
 
-function sectionItem(s, law, navigate) {
+function sectionItem(s, law, navigate, prev) {
   const heading = pick(s, 'heading');
+  const chapter = pick(s, 'chapter');
+  const showChapter = chapter && (!prev || pick(prev, 'chapter') !== chapter);
   const summary = h('summary', { class: 'acc-summary' }, h('span', { class: 'sec-no' }, `${t('law.section')} ${s.section_no}`), heading ? h('span', { class: 'sec-heading' }, heading) : null, icon('down', 'acc-chevron'));
   const body = h('div', { class: 'acc-body' });
 
@@ -108,7 +126,8 @@ function sectionItem(s, law, navigate) {
       }),
     ),
   );
-  return h('details', { class: 'acc-item' }, summary, body);
+  const item = h('details', { class: 'acc-item' }, summary, body);
+  return showChapter ? h('div', { class: 'acc-group' }, h('p', { class: 'sec-chapter' }, chapter), item) : item;
 }
 
 async function share(law) {
@@ -166,7 +185,8 @@ function openReport({ type, id, title, navigate }) {
           }
           msg.setError(null);
           sending = true;
-          const { error } = await supabase.from('reports').insert({ target_type: type, target_id: id, message: text.slice(0, 1000) });
+          // Laws live in JSON files, so the law is named inside the message; target_id is a stable uuid made from its id.
+          const { error } = await supabase.from('reports').insert({ target_type: type, target_id: uuidFromString(id), message: `[${id}] ${text}`.slice(0, 1000) });
           sending = false;
           if (error) {
             logError(error, { where: 'report.insert' });

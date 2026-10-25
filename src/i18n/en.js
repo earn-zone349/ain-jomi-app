@@ -181,4 +181,13 @@ export const en = {
 
   'notfound.title': 'Page not found',
   'notfound.body': 'This page does not exist.',
+  'home.lawsCount': '{n} laws',
+  'home.soon': 'Coming soon',
+  'home.statLaws': 'Laws',
+  'home.statCategories': 'Categories',
+  'laws.categoryEmpty': 'No laws have been added to this category yet. Coming soon.',
+  'laws.catalogEmpty': 'The law list is still being prepared. Coming soon.',
+  'law.loading': 'Loading sections…',
+  'law.loadFailed': 'Sections could not be loaded. Close and reopen the app.',
+  'law.chapter': 'Chapter',
 };

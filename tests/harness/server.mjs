@@ -15,6 +15,7 @@ export function startServer(port = 0) {
     try {
       let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
       if (path === '/') path = '/tests/harness/index.html';
+      if (path.startsWith('/data/')) path = `/tests/harness${path}`; // built law catalogue (see smoke.mjs)
       const file = normalize(join(ROOT, path));
       if (!file.startsWith(ROOT)) throw new Error('outside root');
       let body = await readFile(file);

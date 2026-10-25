@@ -87,3 +87,22 @@ export function passwordProblem(pw) {
   if (/^[0-9]+$/.test(s)) return 'auth.err.pwDigits';
   return null;
 }
+
+/**
+ * Deterministic UUID-shaped id for a text key (e.g. a law slug). Laws live in JSON files, not in the database,
+ * but the reports table stores a uuid; this lets a report point at a law without changing the database.
+ * Not a security feature.
+ */
+export function uuidFromString(key) {
+  const parts = [];
+  for (let seed = 0; seed < 4; seed += 1) {
+    let hash = 0x811c9dc5 ^ (seed * 0x9e3779b1);
+    for (const ch of String(key)) {
+      hash ^= ch.codePointAt(0);
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    parts.push(hash.toString(16).padStart(8, '0'));
+  }
+  const hex = parts.join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}

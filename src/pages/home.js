@@ -2,8 +2,8 @@
 
 import { h, clear } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
-import { banner, button, emptyState, sectionTitle } from '../ui/components.js';
-import { t, pick, formatDate, appName } from '../i18n/index.js';
+import { button, emptyState, sectionTitle } from '../ui/components.js';
+import { t, pick, formatDate, appName, num } from '../i18n/index.js';
 import {
   getCategories,
   getNotices,
@@ -13,9 +13,9 @@ import {
   subscribe,
   syncContent,
   getLawCount,
+  loadSearchIndex,
 } from '../core/content.js';
 import { getAuth } from '../core/auth.js';
-import { toast } from '../ui/toast.js';
 import { CONFIG } from '../config.js';
 
 const NOTICE_TONE = { info: 'info', update: 'success', warning: 'warning' };
@@ -26,7 +26,8 @@ export default function render({ navigate }) {
 
   const auth = getAuth();
   const name = auth.profile?.full_name;
-  root.appendChild(h('div', { class: 'hero' }, h('p', { class: 'hero-hello' }, name ? t('home.helloName', { name }) : t('home.hello')), h('h2', { class: 'hero-title' }, t('home.heroTitle'))));
+  root.appendChild(h('div', { class: 'hero' }, h('p', { class: 'hero-hello' }, name ? t('home.helloName', { name }) : t('home.hello')), h('h2', { class: 'hero-title' }, t('home.heroTitle')), h('div', { class: 'hero-stats' }, heroStat(num(getLawCount()), t('home.statLaws')), heroStat(num(getCategories().length), t('home.statCategories')))));
+  loadSearchIndex();
 
   // Search box: submit goes to the laws page with ?q=
   const input = h('input', { class: 'input search-input', type: 'search', placeholder: t('home.searchPlaceholder'), 'aria-label': t('laws.search'), enterkeyhint: 'search' });
@@ -75,34 +76,29 @@ export default function render({ navigate }) {
     const st = getStatus();
     dynamic.appendChild(statusLine(st));
 
-    // Categories
-    const cats = getCategories();
+    // Categories (the list ships inside the app, so it is always there)
+    // Categories that already have laws come first; empty ones follow as "coming soon".
+    const cats = getCategories().sort((a, b) => Number(getLawCount(b.id) > 0) - Number(getLawCount(a.id) > 0));
     dynamic.appendChild(sectionTitle(t('home.categories')));
     if (!cats.length) {
-      dynamic.appendChild(
-        emptyState({
-          iconName: st.syncing ? 'refresh' : 'book',
-          title: st.syncing ? t('home.loadingContent') : t('home.noContent'),
-          body: st.syncing ? null : st.lastError === 'offline' ? t('home.noContentOffline') : t('home.noContentHint'),
-          action: st.syncing ? null : button(t('settings.syncNow'), { variant: 'primary', icon: 'refresh', onClick: () => manualSync() }),
-        }),
-      );
+      dynamic.appendChild(emptyState({ iconName: 'book', title: t('home.noContent'), body: t('laws.catalogEmpty') }));
     } else {
       dynamic.appendChild(
         h(
           'div',
           { class: 'grid grid-2' },
-          cats.map((c) =>
-            h(
+          cats.map((c) => {
+            const n = getLawCount(c.id);
+            return h(
               'a',
-              { class: 'tile', href: `#/laws?cat=${encodeURIComponent(c.id)}` },
+              { class: `tile${n ? '' : ' tile-soon'}`, href: `#/laws?cat=${encodeURIComponent(c.id)}` },
               h('span', { class: 'tile-icon' }, icon(c.icon || 'book')),
               h('span', { class: 'tile-title' }, pick(c, 'name')),
-            ),
-          ),
+              h('span', { class: 'tile-count' }, n ? t('home.lawsCount', { n: num(n) }) : t('home.soon')),
+            );
+          }),
         ),
       );
-      if (getLawCount() === 0) dynamic.appendChild(banner(t('home.noLawsYet'), { tone: 'info', iconName: 'info' }));
     }
 
     // Coming soon strip
@@ -116,14 +112,13 @@ export default function render({ navigate }) {
     );
   }
 
-  async function manualSync() {
-    const res = await syncContent({ force: true });
-    if (!res.ok) toast(res.reason === 'offline' ? t('error.offline') : t('error.syncFailed'), { tone: 'error' });
-  }
-
   paint();
   const unsubscribe = subscribe(paint);
   return { el: root, title: appName(), destroy: unsubscribe };
+}
+
+function heroStat(value, label) {
+  return h('div', { class: 'hero-stat' }, h('strong', null, value), h('span', null, label));
 }
 
 function statusLine(st) {

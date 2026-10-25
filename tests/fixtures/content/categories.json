@@ -1,0 +1,368 @@
+{
+  "categories": [
+    {
+      "slug": "constitutional-law",
+      "name": {
+        "bn": "সাংবিধানিক আইন",
+        "en": "Constitutional Law"
+      },
+      "desc": {
+        "bn": "রাষ্ট্র পরিচালনা, নাগরিকের মৌলিক অধিকার, সরকারের ক্ষমতা",
+        "en": "Governance of the state, fundamental rights of citizens and powers of government"
+      },
+      "icon": "scale",
+      "sort_order": 10
+    },
+    {
+      "slug": "criminal-law",
+      "name": {
+        "bn": "ফৌজদারি আইন",
+        "en": "Criminal Law"
+      },
+      "desc": {
+        "bn": "হত্যা, চুরি, ডাকাতি, প্রতারণা ও অপরাধের শাস্তি",
+        "en": "Murder, theft, robbery, fraud and punishment of offences"
+      },
+      "icon": "shield",
+      "sort_order": 20
+    },
+    {
+      "slug": "civil-law",
+      "name": {
+        "bn": "দেওয়ানি আইন",
+        "en": "Civil Law"
+      },
+      "desc": {
+        "bn": "জমি, সম্পত্তি, পাওনা টাকা ও ব্যক্তিগত অধিকারসংক্রান্ত বিরোধ",
+        "en": "Disputes about land, property, money owed and personal rights"
+      },
+      "icon": "file",
+      "sort_order": 30
+    },
+    {
+      "slug": "land-law",
+      "name": {
+        "bn": "ভূমি আইন",
+        "en": "Land Law"
+      },
+      "desc": {
+        "bn": "জমির মালিকানা, খতিয়ান, নামজারি, খাসজমি ও ভূমি ব্যবস্থাপনা",
+        "en": "Land ownership, khatian, mutation, khas land and land management"
+      },
+      "icon": "land",
+      "sort_order": 40
+    },
+    {
+      "slug": "family-law",
+      "name": {
+        "bn": "পারিবারিক আইন",
+        "en": "Family Law"
+      },
+      "desc": {
+        "bn": "বিয়ে, তালাক, ভরণপোষণ, অভিভাবকত্ব ও পারিবারিক বিরোধ",
+        "en": "Marriage, divorce, maintenance, guardianship and family disputes"
+      },
+      "icon": "heart",
+      "sort_order": 50
+    },
+    {
+      "slug": "inheritance-law",
+      "name": {
+        "bn": "উত্তরাধিকার আইন",
+        "en": "Inheritance Law"
+      },
+      "desc": {
+        "bn": "মৃত্যুর পর সম্পত্তি বণ্টন ও উত্তরাধিকারীর অধিকার",
+        "en": "Division of property after death and the rights of heirs"
+      },
+      "icon": "scale",
+      "sort_order": 60
+    },
+    {
+      "slug": "contract-law",
+      "name": {
+        "bn": "চুক্তি আইন",
+        "en": "Contract Law"
+      },
+      "desc": {
+        "bn": "চুক্তি, চুক্তিভঙ্গ, ক্ষতিপূরণ ও চুক্তির বৈধতা",
+        "en": "Contracts, breach, compensation and validity of contracts"
+      },
+      "icon": "file",
+      "sort_order": 70
+    },
+    {
+      "slug": "labour-law",
+      "name": {
+        "bn": "শ্রম আইন",
+        "en": "Labour Law"
+      },
+      "desc": {
+        "bn": "শ্রমিকের মজুরি, চাকরির শর্ত, কর্মঘণ্টা ও শ্রমিকের অধিকার",
+        "en": "Wages, conditions of employment, working hours and workers' rights"
+      },
+      "icon": "briefcase",
+      "sort_order": 80
+    },
+    {
+      "slug": "cyber-ict-law",
+      "name": {
+        "bn": "সাইবার ও তথ্যপ্রযুক্তি আইন",
+        "en": "Cyber & Information Technology Law"
+      },
+      "desc": {
+        "bn": "অনলাইন অপরাধ, ডিজিটাল নিরাপত্তা ও প্রযুক্তির ব্যবহার",
+        "en": "Online crime, digital security and use of technology"
+      },
+      "icon": "laptop",
+      "sort_order": 90
+    },
+    {
+      "slug": "banking-finance-law",
+      "name": {
+        "bn": "ব্যাংক ও আর্থিক আইন",
+        "en": "Banking & Financial Law"
+      },
+      "desc": {
+        "bn": "ব্যাংক, ঋণ, আর্থিক প্রতিষ্ঠান ও লেনদেন",
+        "en": "Banks, loans, financial institutions and transactions"
+      },
+      "icon": "bank",
+      "sort_order": 100
+    },
+    {
+      "slug": "tax-revenue-law",
+      "name": {
+        "bn": "কর ও রাজস্ব আইন",
+        "en": "Tax & Revenue Law"
+      },
+      "desc": {
+        "bn": "আয়কর, মূল্য সংযোজন কর (ভ্যাট) ও শুল্ক",
+        "en": "Income tax, value added tax (VAT) and customs duty"
+      },
+      "icon": "coins",
+      "sort_order": 110
+    },
+    {
+      "slug": "company-business-law",
+      "name": {
+        "bn": "কোম্পানি ও ব্যবসায়িক আইন",
+        "en": "Company & Business Law"
+      },
+      "desc": {
+        "bn": "কোম্পানি নিবন্ধন, ব্যবসা পরিচালনা ও প্রতিষ্ঠানের দায়িত্ব",
+        "en": "Company registration, running a business and duties of institutions"
+      },
+      "icon": "building",
+      "sort_order": 120
+    },
+    {
+      "slug": "consumer-rights-law",
+      "name": {
+        "bn": "ভোক্তা অধিকার আইন",
+        "en": "Consumer Rights Law"
+      },
+      "desc": {
+        "bn": "পণ্যের মান, প্রতারণা ও ভোক্তার অধিকার",
+        "en": "Product quality, fraud and the rights of consumers"
+      },
+      "icon": "shield",
+      "sort_order": 130
+    },
+    {
+      "slug": "women-children-protection-law",
+      "name": {
+        "bn": "নারী ও শিশু সুরক্ষা আইন",
+        "en": "Women & Children Protection Law"
+      },
+      "desc": {
+        "bn": "নারী ও শিশুর বিরুদ্ধে অপরাধ, সুরক্ষা ও প্রতিকার",
+        "en": "Crimes against women and children, protection and remedies"
+      },
+      "icon": "family",
+      "sort_order": 140
+    },
+    {
+      "slug": "human-rights-law",
+      "name": {
+        "bn": "মানবাধিকার আইন",
+        "en": "Human Rights Law"
+      },
+      "desc": {
+        "bn": "মানুষের মৌলিক অধিকার ও আইনি সুরক্ষা",
+        "en": "Fundamental human rights and legal protection"
+      },
+      "icon": "user",
+      "sort_order": 150
+    },
+    {
+      "slug": "environment-law",
+      "name": {
+        "bn": "পরিবেশ আইন",
+        "en": "Environmental Law"
+      },
+      "desc": {
+        "bn": "পরিবেশদূষণ, বন, বন্যপ্রাণী ও পরিবেশ সংরক্ষণ",
+        "en": "Pollution, forests, wildlife and environmental protection"
+      },
+      "icon": "leaf",
+      "sort_order": 160
+    },
+    {
+      "slug": "transport-road-law",
+      "name": {
+        "bn": "যানবাহন ও সড়ক আইন",
+        "en": "Vehicle & Road Law"
+      },
+      "desc": {
+        "bn": "ট্রাফিক নিয়ম, সড়ক নিরাপত্তা ও যানবাহন পরিচালনা",
+        "en": "Traffic rules, road safety and operation of vehicles"
+      },
+      "icon": "car",
+      "sort_order": 170
+    },
+    {
+      "slug": "education-law",
+      "name": {
+        "bn": "শিক্ষা আইন",
+        "en": "Education Law"
+      },
+      "desc": {
+        "bn": "শিক্ষাপ্রতিষ্ঠান, শিক্ষা প্রশাসন ও সংশ্লিষ্ট বিধিবিধান",
+        "en": "Educational institutions, education administration and related rules"
+      },
+      "icon": "graduation",
+      "sort_order": 180
+    },
+    {
+      "slug": "health-public-health-law",
+      "name": {
+        "bn": "চিকিৎসা ও জনস্বাস্থ্য আইন",
+        "en": "Medical & Public Health Law"
+      },
+      "desc": {
+        "bn": "চিকিৎসাসেবা, জনস্বাস্থ্য ও স্বাস্থ্যসংক্রান্ত নিয়ন্ত্রণ",
+        "en": "Medical services, public health and health regulation"
+      },
+      "icon": "info",
+      "sort_order": 190
+    },
+    {
+      "slug": "immigration-passport-law",
+      "name": {
+        "bn": "অভিবাসন ও পাসপোর্ট আইন",
+        "en": "Immigration & Passport Law"
+      },
+      "desc": {
+        "bn": "পাসপোর্ট, বিদেশ ভ্রমণ, ভিসা ও অভিবাসন",
+        "en": "Passports, travel abroad, visas and immigration"
+      },
+      "icon": "globe",
+      "sort_order": 200
+    },
+    {
+      "slug": "election-law",
+      "name": {
+        "bn": "নির্বাচন আইন",
+        "en": "Election Law"
+      },
+      "desc": {
+        "bn": "নির্বাচন পরিচালনা, ভোটার ও নির্বাচনী অপরাধ",
+        "en": "Conduct of elections, voters and electoral offences"
+      },
+      "icon": "vote",
+      "sort_order": 210
+    },
+    {
+      "slug": "administrative-law",
+      "name": {
+        "bn": "প্রশাসনিক আইন",
+        "en": "Administrative Law"
+      },
+      "desc": {
+        "bn": "সরকারি কর্তৃপক্ষের ক্ষমতা, দায়িত্ব ও প্রশাসনিক সিদ্ধান্ত",
+        "en": "Powers and duties of public authorities and administrative decisions"
+      },
+      "icon": "gavel",
+      "sort_order": 220
+    },
+    {
+      "slug": "military-defence-law",
+      "name": {
+        "bn": "সামরিক ও প্রতিরক্ষা আইন",
+        "en": "Military & Defence Law"
+      },
+      "desc": {
+        "bn": "সশস্ত্র বাহিনী ও প্রতিরক্ষা-সংক্রান্ত বিধিবিধান",
+        "en": "Armed forces and defence-related rules"
+      },
+      "icon": "shield",
+      "sort_order": 230
+    },
+    {
+      "slug": "intellectual-property-law",
+      "name": {
+        "bn": "মেধাস্বত্ব আইন",
+        "en": "Intellectual Property Law"
+      },
+      "desc": {
+        "bn": "কপিরাইট, পেটেন্ট, ট্রেডমার্ক ও সৃজনশীল কাজের অধিকার",
+        "en": "Copyright, patent, trademark and rights in creative work"
+      },
+      "icon": "copyright",
+      "sort_order": 240
+    },
+    {
+      "slug": "judiciary-court-law",
+      "name": {
+        "bn": "বিচার ও আদালতসংক্রান্ত আইন",
+        "en": "Judiciary & Court Law"
+      },
+      "desc": {
+        "bn": "আদালতের কার্যক্রম, সাক্ষ্যপ্রমাণ, বিচারপ্রক্রিয়া ও আপিল",
+        "en": "Court proceedings, evidence, trial procedure and appeals"
+      },
+      "icon": "gavel",
+      "sort_order": 250
+    },
+    {
+      "slug": "property-registration-law",
+      "name": {
+        "bn": "সম্পত্তি হস্তান্তর ও রেজিস্ট্রেশন আইন",
+        "en": "Property Transfer & Registration Law"
+      },
+      "desc": {
+        "bn": "জমি ও সম্পত্তি কেনাবেচা, দলিল, রেজিস্ট্রেশন ও স্ট্যাম্প",
+        "en": "Buying and selling land and property, deeds, registration and stamps"
+      },
+      "icon": "building",
+      "sort_order": 260
+    },
+    {
+      "slug": "arbitration-adr-law",
+      "name": {
+        "bn": "সালিশ ও বিকল্প বিরোধ নিষ্পত্তি আইন",
+        "en": "Arbitration & Alternative Dispute Resolution Law"
+      },
+      "desc": {
+        "bn": "আদালতের বাইরে সালিশ, মধ্যস্থতা ও বিরোধ মীমাংসা",
+        "en": "Arbitration, mediation and settling disputes outside court"
+      },
+      "icon": "scale",
+      "sort_order": 270
+    },
+    {
+      "slug": "association-ngo-law",
+      "name": {
+        "bn": "সংস্থা, সমিতি ও এনজিও আইন",
+        "en": "Associations, Societies & NGO Law"
+      },
+      "desc": {
+        "bn": "সমিতি, ট্রাস্ট ও এনজিও নিবন্ধন ও পরিচালনা",
+        "en": "Registration and running of societies, trusts and NGOs"
+      },
+      "icon": "family",
+      "sort_order": 280
+    }
+  ]
+}

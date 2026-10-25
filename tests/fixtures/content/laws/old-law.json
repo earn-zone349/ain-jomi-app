@@ -1,0 +1,16 @@
+{
+  "slug": "old-law",
+  "category": "criminal-law",
+  "title": {
+    "bn": "পুরোনো আইন",
+    "en": "An Old Repealed Law"
+  },
+  "law_status": "repealed",
+  "summary": {
+    "en": "Kept for history."
+  },
+  "source": {
+    "name": "bdlaws.minlaw.gov.bd",
+    "last_verified": "2026-09-30"
+  }
+}

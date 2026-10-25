@@ -1,5 +1,13 @@
 // Offline-first content repository.
 //
+//  Two kinds of content:
+//   1. Laws and categories are plain JSON files that ship inside the app (public/data, built by
+//      scripts/build-laws.mjs). They need no network and no database. To change a law you edit its JSON file
+//      and build a new APK.
+//   2. FAQs, notices and legal pages (Terms/Privacy) are edited in the admin panel and live in Supabase. They are
+//      synced below and cached in IndexedDB.
+//
+//  Details of the Supabase sync:
 //  * Everything the UI reads comes from an in-memory index that is loaded from IndexedDB at start-up,
 //    so screens work with no connection at all.
 //  * syncContent() asks the server for content_meta (a version number + epoch). If nothing changed it stops
@@ -16,6 +24,12 @@ import { normalizeText } from '../lib/text.js';
 import { LEGAL } from '../generated/legal.js';
 
 const mem = Object.fromEntries(CONTENT_TABLES.map((t) => [t, new Map()]));
+// Bundled catalogue (JSON files shipped inside the app).
+const catalog = { categories: new Map(), laws: new Map(), version: null };
+const sectionsCache = new Map(); // slug -> sections[]
+const sectionsLoading = new Map(); // slug -> Promise
+let searchIndex = null; // { slug: { b: bodyText, k: keywordText } }
+let searchLoading = null;
 const listeners = new Set();
 let settings = {};
 let haystacks = null; // lazily built search index, reset on every change
@@ -31,7 +45,7 @@ const status = {
 
 function emit() {
   haystacks = null;
-  status.hasContent = mem.laws.size > 0 || mem.categories.size > 0;
+  status.hasContent = catalog.laws.size > 0 || catalog.categories.size > 0;
   listeners.forEach((fn) => {
     try {
       fn(getStatus());
@@ -53,7 +67,60 @@ export function getStatus() {
 // ---------------------------------------------------------------------------------------------
 // Loading from disk
 // ---------------------------------------------------------------------------------------------
+async function fetchJson(path) {
+  const res = await fetch(`./data/${path}`, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
+  return res.json();
+}
+
+async function loadCatalog() {
+  try {
+    const index = await fetchJson('index.json');
+    catalog.categories = new Map(index.categories.map((c) => [c.id, c]));
+    catalog.laws = new Map(index.laws.map((l) => [l.id, l]));
+    catalog.version = index.version;
+  } catch (err) {
+    // The catalogue ships inside the app, so this means a broken build, not a network problem.
+    status.lastError = status.lastError || 'failed';
+    console.error('law catalogue could not be loaded', err);
+  }
+}
+
+/** Loads the sections of one law (from the app bundle) and caches them. Resolves to the list. */
+export function loadSections(slug) {
+  if (sectionsCache.has(slug)) return Promise.resolve(sectionsCache.get(slug));
+  if (sectionsLoading.has(slug)) return sectionsLoading.get(slug);
+  const p = fetchJson(`laws/${encodeURIComponent(slug)}.json`)
+    .then((doc) => {
+      sectionsCache.set(slug, doc.sections || []);
+      return sectionsCache.get(slug);
+    })
+    .finally(() => sectionsLoading.delete(slug));
+  sectionsLoading.set(slug, p);
+  return p;
+}
+
+/** Loads the full-text search index once. Until then, search matches titles and summaries only. */
+export function loadSearchIndex() {
+  if (searchIndex) return Promise.resolve(searchIndex);
+  if (!searchLoading) {
+    searchLoading = fetchJson('search.json')
+      .then((doc) => {
+        searchIndex = doc;
+        haystacks = null;
+        emit();
+        return doc;
+      })
+      .catch(() => {
+        searchLoading = null;
+        return null;
+      });
+  }
+  return searchLoading;
+}
+
 export async function initContent() {
+  await loadCatalog();
   for (const table of CONTENT_TABLES) {
     const rows = await idb.getAll(table);
     mem[table].clear();
@@ -204,29 +271,33 @@ export function getSetting(key, fallback = null) {
 }
 
 export function getCategories() {
-  return [...mem.categories.values()].sort((a, b) => byOrder(a, b) || natural(a.slug, b.slug));
+  return [...catalog.categories.values()].sort((a, b) => byOrder(a, b) || natural(a.slug, b.slug));
 }
 
 export function getCategory(id) {
-  return mem.categories.get(id) || null;
+  return catalog.categories.get(id) || null;
 }
 
 export function getLaws({ categoryId = null } = {}) {
-  let laws = [...mem.laws.values()];
+  let laws = [...catalog.laws.values()];
   if (categoryId) laws = laws.filter((l) => l.category_id === categoryId);
   return laws.sort((a, b) => natural(a.title_en || a.title_bn, b.title_en || b.title_bn));
 }
 
 export function getLaw(id) {
-  return mem.laws.get(id) || null;
+  return catalog.laws.get(id) || null;
 }
 
-export function getLawCount() {
-  return mem.laws.size;
+export function getLawCount(categoryId = null) {
+  if (!categoryId) return catalog.laws.size;
+  let n = 0;
+  for (const l of catalog.laws.values()) if (l.category_id === categoryId) n += 1;
+  return n;
 }
 
+/** Sections already loaded for a law (empty until loadSections() has resolved). */
 export function getSections(lawId) {
-  return [...mem.law_sections.values()].filter((s) => s.law_id === lawId).sort((a, b) => byOrder(a, b) || natural(a.section_no, b.section_no));
+  return sectionsCache.get(lawId) || [];
 }
 
 export function getFaqs(categoryId = null) {
@@ -251,23 +322,16 @@ export function getLegalPage(slug) {
 }
 
 function buildHaystacks() {
-  const bySection = new Map();
-  for (const s of mem.law_sections.values()) {
-    const parts = [s.section_no, s.heading_bn, s.heading_en, s.text_bn, s.text_en, s.explain_bn, s.explain_en];
-    const arr = bySection.get(s.law_id) || [];
-    arr.push(parts.filter(Boolean).join(' '));
-    bySection.set(s.law_id, arr);
-  }
   const out = new Map();
-  for (const l of mem.laws.values()) {
-    const title = normalizeText([l.title_bn, l.title_en, l.act_number, l.year].filter(Boolean).join(' '));
-    const body = normalizeText([l.summary_bn, l.summary_en, ...(bySection.get(l.id) || [])].filter(Boolean).join(' '));
+  for (const l of catalog.laws.values()) {
+    const title = normalizeText([l.title_bn, l.title_en, l.act_number, l.year, searchIndex?.[l.id]?.k].filter(Boolean).join(' '));
+    const body = normalizeText([l.summary_bn, l.summary_en, searchIndex?.[l.id]?.b].filter(Boolean).join(' '));
     out.set(l.id, { title, body });
   }
   return out;
 }
 
-/** Simple offline search over law titles, summaries and section text. Title matches rank first. */
+/** Offline search over law titles, keywords, summaries and (once the index is loaded) section text. Title matches rank first. */
 export function searchLaws(query, { categoryId = null } = {}) {
   const q = normalizeText(query);
   if (!q) return getLaws({ categoryId });

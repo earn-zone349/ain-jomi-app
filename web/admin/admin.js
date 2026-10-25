@@ -1,4 +1,4 @@
-// Admin panel: content editors (laws, sections, categories, FAQs, notices, terms), user reports,
+// Admin panel: content editors (FAQs, notices, terms), user reports,
 // users and roles, app settings, audit history and error logs.
 //
 // Security model: this page is only a convenience. Every action goes through Supabase with the signed-in
@@ -120,9 +120,8 @@ async function viewDashboard() {
   };
   const since = new Date(Date.now() - 7 * 86400000).toISOString();
   const items = [
-    ['Laws published', count('laws', (q) => q.eq('status', 'published')), '#/t/laws'],
-    ['Laws in draft', count('laws', (q) => q.eq('status', 'draft')), '#/t/laws'],
-    ['Sections', count('law_sections'), '#/t/laws'],
+    ['FAQs published', count('faqs', (q) => q.eq('status', 'published')), '#/t/faqs'],
+    ['Notices published', count('notices', (q) => q.eq('status', 'published')), '#/t/notices'],
     ['Open reports', count('reports', (q) => q.eq('status', 'open')), '#/reports'],
   ];
   if (isAdmin()) items.push(['Errors (7 days)', count('error_logs', (q) => q.gte('created_at', since)), '#/errors']);
@@ -131,7 +130,7 @@ async function viewDashboard() {
     grid.appendChild(h('a', { class: 'stat', href, style: 'text-decoration:none;color:inherit' }, num, h('span', { class: 'muted small' }, label)));
     p.then((n) => (num.textContent = String(n)));
   }
-  wrap.appendChild(notice('Tip: new laws start as Draft. Check the text against the official source, then set Status to Published. Archive (never delete) anything that must disappear from phones.', 'info'));
+  wrap.appendChild(notice('Tip: new items start as Draft. Check the text, then set Status to Published. Laws are not edited here: they are JSON files in the content/ folder of the repository. Archive (never delete) anything that must disappear from phones.', 'info'));
   return wrap;
 }
 
@@ -264,37 +263,7 @@ async function viewForm(tableName, id, opts = {}) {
   if (existing?.status === 'published') wrap.appendChild(notice('This item is live in the app. Changes appear on phones the next time they sync. A published item cannot go back to Draft; use Archived to hide it.', 'info'));
   wrap.appendChild(h('div', { class: 'card' }, form));
 
-  // Law page: show its sections
-  if (tableName === 'laws' && existing) wrap.appendChild(await sectionsPanel(existing.id));
   return wrap;
-}
-
-async function sectionsPanel(lawId) {
-  const box = h('div', { class: 'card' });
-  const { data, error } = await supabase.from('law_sections').select('id,section_no,heading_en,heading_bn,status,sort_order').eq('law_id', lawId).order('sort_order', { ascending: true }).limit(1000);
-  box.appendChild(h('div', { class: 'adm-head' }, h('h2', null, 'Sections · ধারা'), btn('+ Add section / ধারা যোগ', { variant: 'primary', onClick: () => go(`/s/${lawId}/new`) })));
-  if (error) {
-    box.appendChild(notice(friendlyError(error), 'error'));
-    return box;
-  }
-  const rows = (data || []).sort((a, b) => (a.sort_order ?? 100) - (b.sort_order ?? 100) || String(a.section_no).localeCompare(String(b.section_no), undefined, { numeric: true }));
-  if (!rows.length) {
-    box.appendChild(h('p', { class: 'muted' }, 'No sections yet.'));
-    return box;
-  }
-  box.appendChild(
-    h(
-      'div',
-      { class: 'adm-table-wrap' },
-      h(
-        'table',
-        { class: 'adm-table' },
-        h('thead', null, h('tr', null, h('th', null, 'No.'), h('th', null, 'Heading'), h('th', null, 'Status'), h('th', null, ''))),
-        h('tbody', null, rows.map((r) => h('tr', null, h('td', null, r.section_no), h('td', null, r.heading_en || r.heading_bn || ''), h('td', null, badge(r.status)), h('td', null, btn('Edit', { onClick: () => go(`/s/${lawId}/${r.id}`) }))))),
-      ),
-    ),
-  );
-  return box;
 }
 
 async function viewReports(query) {
@@ -314,18 +283,6 @@ async function viewReports(query) {
     card.appendChild(h('p', { class: 'small muted' }, `${fmtDate(r.created_at)} · ${r.target_type} · user ${short(r.user_id) || 'deleted'}`));
     card.appendChild(h('p', null, r.message));
     const actions = h('div', { class: 'adm-actions' });
-    if (r.target_id && (r.target_type === 'law' || r.target_type === 'law_section')) {
-      actions.appendChild(
-        btn('Open item', {
-          onClick: async () => {
-            if (r.target_type === 'law') return go(`/t/laws/${r.target_id}`);
-            const { data: sec } = await supabase.from('law_sections').select('law_id').eq('id', r.target_id).maybeSingle();
-            if (sec) go(`/s/${sec.law_id}/${r.target_id}`);
-            else alert('That section no longer exists.');
-          },
-        }),
-      );
-    }
     const setStatus = (next) => async (e) => {
       await busy(e.currentTarget, async () => {
         const { error: err } = await supabase.from('reports').update({ status: next, resolved_by: state.user.id, resolved_at: new Date().toISOString() }).eq('id', r.id);
@@ -457,7 +414,7 @@ async function viewSettings() {
   return wrap;
 }
 
-const RESTORABLE = new Set(['laws', 'law_sections', 'categories', 'faqs', 'notices', 'legal_pages']);
+const RESTORABLE = new Set(['faqs', 'notices', 'legal_pages']);
 
 async function viewAudit(query) {
   if (!isAdmin()) return notice('Admins only.', 'error');
@@ -532,8 +489,6 @@ async function viewErrors() {
 // ---------------------------------------------------------------------------------------------
 const NAV = [
   { path: '/', label: 'Dashboard' },
-  { path: '/t/laws', label: 'Laws' },
-  { path: '/t/categories', label: 'Categories' },
   { path: '/t/faqs', label: 'FAQs' },
   { path: '/t/notices', label: 'Notices' },
   { path: '/reports', label: 'Reports' },
@@ -564,11 +519,11 @@ async function route() {
   try {
     const [a, b, c] = parts;
     if (!a) view = await viewDashboard();
-    else if (a === 't' && TABLES[b] && b !== 'law_sections') {
+    else if (a === 't' && TABLES[b]) {
       const needsAdmin = b === 'legal_pages';
       if (needsAdmin && !isAdmin()) view = notice('Admins only.', 'error');
       else view = c ? await viewForm(b, c) : await viewList(b);
-    } else if (a === 's' && b) view = await viewForm('law_sections', c || 'new', { parentId: b, backPath: `/t/laws/${b}` });
+    }
     else if (a === 'reports') view = await viewReports(query);
     else if (a === 'users') view = await viewUsers();
     else if (a === 'settings') view = await viewSettings();

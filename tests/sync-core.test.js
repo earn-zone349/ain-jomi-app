@@ -46,6 +46,5 @@ test('isNoticeActive honours status and time window', () => {
 });
 
 test('content tables list parents before children', () => {
-  assert.ok(CONTENT_TABLES.indexOf('laws') < CONTENT_TABLES.indexOf('law_sections'));
-  assert.ok(CONTENT_TABLES.indexOf('categories') < CONTENT_TABLES.indexOf('laws'));
+  assert.deepEqual(CONTENT_TABLES, ['faqs', 'notices', 'legal_pages']);
 });

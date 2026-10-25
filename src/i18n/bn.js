@@ -181,4 +181,13 @@ export const bn = {
 
   'notfound.title': 'পাতা পাওয়া যায়নি',
   'notfound.body': 'এই পাতাটি নেই।',
+  'home.lawsCount': '{n} টি আইন',
+  'home.soon': 'শীঘ্রই আসছে',
+  'home.statLaws': 'আইন',
+  'home.statCategories': 'বিভাগ',
+  'laws.categoryEmpty': 'এই বিভাগে এখনো আইন যোগ হয়নি। শীঘ্রই আসছে।',
+  'laws.catalogEmpty': 'আইনের তালিকা এখনো তৈরি হচ্ছে। শীঘ্রই আসছে।',
+  'law.loading': 'ধারা লোড হচ্ছে…',
+  'law.loadFailed': 'ধারা লোড করা যায়নি। অ্যাপ বন্ধ করে আবার খুলুন।',
+  'law.chapter': 'অধ্যায়',
 };

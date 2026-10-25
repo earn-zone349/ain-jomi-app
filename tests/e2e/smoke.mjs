@@ -5,6 +5,10 @@
 import { createRequire } from 'node:module';
 import { startServer } from '../harness/server.mjs';
 import { mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+
+// Build the law catalogue from the fixture JSON files, exactly like the real build does.
+execFileSync('node', ['scripts/build-laws.mjs'], { env: { ...process.env, CONTENT_DIR: 'tests/fixtures/content', DATA_OUT: 'tests/harness/data' }, stdio: 'inherit' });
 
 // ESM ignores NODE_PATH, so resolve Playwright explicitly (local install or a global one).
 const require = createRequire(import.meta.url);
@@ -54,7 +58,8 @@ await page.locator('.welcome .btn-primary').click();
 // 2. home + sync
 await page.waitForSelector('.tile');
 await page.waitForTimeout(300);
-check('home lists both categories', (await page.locator('.tile').count()) === 2, `count=${await page.locator('.tile').count()}`);
+check('home lists all 28 categories, even empty ones', (await page.locator('.tile').count()) === 28, `count=${await page.locator('.tile').count()}`);
+check('home shows law counts and coming-soon', (await text('.tile:nth-child(1) .tile-count')).includes('২ টি আইন') && (await page.locator('.tile-soon').count()) === 26, await text('.tile:nth-child(1) .tile-count'));
 check('update notice is visible', (await text('.notice')).includes('আইন হালনাগাদ'));
 check('home is Bangla', (await text('.hero-title')).includes('অধিকার'));
 await shot('03-home');
@@ -79,6 +84,9 @@ await page.locator('.search-input').fill('');
 await page.waitForTimeout(350);
 await page.locator('.chip', { hasText: 'ভূমি' }).click();
 check('category filter works', (await page.locator('ul.list .row').count()) === 1);
+await page.locator('.chip', { hasText: 'শিক্ষা' }).click();
+check('empty category says coming soon', (await text('.state')).includes('শীঘ্রই আসছে'));
+await page.locator('.chip', { hasText: 'ভূমি' }).click();
 await shot('04-laws');
 
 // 4. law detail
@@ -91,6 +99,7 @@ await page.locator('.chip', { hasText: 'সব' }).click();
 await page.locator('ul.list .row', { hasText: 'দণ্ডবিধি' }).click();
 await page.waitForSelector('.acc-item');
 check('Penal Code has 2 sections', (await page.locator('.acc-item').count()) === 2);
+check('chapter heading shown once for consecutive sections', (await page.locator('.sec-chapter').count()) === 1);
 check('source link is external and safe', (await page.locator('a.link[target="_blank"][rel*="noopener"]').count()) === 1);
 await page.locator('.acc-item').first().locator('summary').click();
 check('section 378 text visible', (await text('.acc-item[open] .law-text')).includes('অসদুদ্দেশ্যে'));
@@ -160,25 +169,30 @@ await page.locator('.dialog textarea').fill('Section number looks wrong');
 await page.locator('.dialog .btn-primary').click();
 await page.waitForSelector('.toast');
 check('report sent', (await page.evaluate(() => __fake.db.reports.length)) === 2);
+check('report names the law and has a uuid target', await page.evaluate(() => { const r = __fake.db.reports.at(-1); return r.message.startsWith('[penal-code-1860]') && /^[0-9a-f-]{36}$/.test(r.target_id); }));
 
-// 10. server-side changes: edit, archive (tombstone), maintenance, hard delete (epoch)
-await page.evaluate(() => { __fake.upsert('laws', { id: 'l2', title_en: 'State Acquisition and Tenancy Act (revised)' }); __fake.upsert('laws', { id: 'l3', status: 'archived' }); });
+// 10. server-side changes to notices: add, archive (tombstone), hard delete (epoch bump)
+await page.evaluate(() => __fake.upsert('notices', { id: 'n2', kind: 'info', title_bn: 'নতুন নোটিশ', title_en: 'Fresh notice', status: 'published' }));
 await page.locator('.tab[data-tab="settings"]').click();
 await page.locator('.btn', { hasText: 'Update now' }).click();
 await page.waitForSelector('.toast');
-await page.locator('.tab[data-tab="laws"]').click();
-await page.waitForSelector('ul.list .row');
-check('edited law title synced', (await text('ul.list')).includes('(revised)'));
-check('archived law removed from cache', !(await text('ul.list')).includes('Old Repealed'));
-check('law count now 2', (await page.locator('ul.list .row').count()) === 2);
-
-await page.evaluate(() => __fake.hardDelete('laws', 'l2'));
+await page.locator('.tab[data-tab="home"]').click();
+await page.waitForSelector('.notice');
+check('new notice synced', (await text('.notice')).includes('Fresh notice'));
+await page.evaluate(() => __fake.upsert('notices', { id: 'n2', status: 'archived' }));
 await page.locator('.tab[data-tab="settings"]').click();
 await page.locator('.btn', { hasText: 'Update now' }).click();
 await page.waitForTimeout(500);
-await page.locator('.tab[data-tab="laws"]').click();
-await page.waitForSelector('ul.list .row');
-check('hard delete (epoch bump) wipes and resyncs', (await page.locator('ul.list .row').count()) === 1 && !(await text('ul.list')).includes('State Acquisition'));
+await page.locator('.tab[data-tab="home"]').click();
+await page.waitForSelector('.tile');
+check('archived notice removed from cache', (await page.locator('.notice').count()) === 0);
+await page.evaluate(() => { __fake.upsert('notices', { id: 'n3', kind: 'info', title_bn: 'তৃতীয়', title_en: 'Third notice', status: 'published' }); __fake.hardDelete('notices', 'n1'); });
+await page.locator('.tab[data-tab="settings"]').click();
+await page.locator('.btn', { hasText: 'Update now' }).click();
+await page.waitForTimeout(500);
+await page.locator('.tab[data-tab="home"]').click();
+await page.waitForSelector('.notice');
+check('hard delete (epoch bump) wipes and resyncs', (await text('.notice')).includes('Third notice') && (await page.locator('.notice').count()) === 1);
 
 // 11. offline: reload with no network
 await page.evaluate(() => localStorage.setItem('x-offline', '1'));
@@ -186,7 +200,7 @@ await page.reload();
 await page.waitForSelector('.tab');
 await page.locator('.tab[data-tab="laws"]').click();
 await page.waitForSelector('ul.list .row');
-check('offline: saved laws still listed after restart', (await page.locator('ul.list .row').count()) === 1);
+check('offline: laws are bundled, so all 3 are listed after restart', (await page.locator('ul.list .row').count()) === 3);
 check('offline bar visible', await page.locator('.offline-bar').isVisible());
 await page.locator('.tab[data-tab="home"]').click();
 await page.waitForSelector('.sync-line');

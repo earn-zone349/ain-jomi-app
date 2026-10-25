@@ -203,3 +203,19 @@
 :root[data-theme='dark'] .toast-error { color: #2a0c08; }
 .toast-out { opacity: 0; transition: opacity 0.25s; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---------- Home / catalogue polish ---------- */
+.hero { position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; inset-inline-end: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); pointer-events: none; }
+.hero-stats { display: flex; gap: 22px; margin-top: 14px; }
+.hero-stat { display: flex; flex-direction: column; line-height: 1.2; }
+.hero-stat strong { font-size: 1.5rem; }
+.hero-stat span { font-size: 0.8125rem; opacity: 0.85; }
+.tile { transition: transform 0.12s, border-color 0.12s; }
+.tile:active { transform: scale(0.98); border-color: var(--c-primary); }
+.tile-count { font-size: 0.8125rem; color: var(--c-muted); margin-top: auto; }
+.tile-soon { background: var(--c-surface-2); box-shadow: none; }
+.tile-soon .tile-icon { opacity: 0.7; }
+.sec-chapter { margin: 14px 2px 6px; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em; color: var(--c-primary); }
+:root[data-theme='dark'] .sec-chapter { color: var(--c-link); }
+.acc-group { display: flex; flex-direction: column; }

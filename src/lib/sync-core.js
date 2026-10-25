@@ -4,7 +4,7 @@
 export const OVERLAP_MS = 2 * 60 * 1000;
 
 /** Content tables, in dependency order (parents first). */
-export const CONTENT_TABLES = ['categories', 'laws', 'law_sections', 'faqs', 'notices', 'legal_pages'];
+export const CONTENT_TABLES = ['faqs', 'notices', 'legal_pages'];
 
 /**
  * Starting point for an incremental pull: the stored high-water mark minus the overlap.

@@ -1,0 +1,48 @@
+{
+  "_comment": "এটি একটি খালি নমুনা। কপি করে নতুন নাম দিন (ফাইলের নাম = slug), তারপর status 'published' করুন। status 'draft' থাকলে অ্যাপে আসবে না।",
+  "slug": "example-law-slug",
+  "status": "draft",
+  "category": "civil-law",
+  "title": {
+    "bn": "আইনের নাম (বাংলা)",
+    "en": "Name of the law (English)"
+  },
+  "act_number": "",
+  "year": null,
+  "law_status": "in_force",
+  "summary": {
+    "bn": "",
+    "en": ""
+  },
+  "keywords": [],
+  "source": {
+    "name": "bdlaws.minlaw.gov.bd",
+    "url": "https://bdlaws.minlaw.gov.bd/",
+    "last_verified": "2026-01-01"
+  },
+  "sections": [
+    {
+      "no": "1",
+      "chapter": {
+        "bn": "",
+        "en": ""
+      },
+      "heading": {
+        "bn": "",
+        "en": ""
+      },
+      "text": {
+        "bn": "ধারার মূল পাঠ এখানে",
+        "en": ""
+      },
+      "explain": {
+        "bn": "",
+        "en": ""
+      },
+      "punishment": {
+        "bn": "",
+        "en": ""
+      }
+    }
+  ]
+}

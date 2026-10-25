@@ -1,0 +1,60 @@
+{
+  "slug": "penal-code-1860",
+  "category": "criminal-law",
+  "title": {
+    "bn": "দণ্ডবিধি, ১৮৬০",
+    "en": "The Penal Code, 1860"
+  },
+  "act_number": "XLV",
+  "year": 1860,
+  "summary": {
+    "bn": "অপরাধ ও শাস্তি সংক্রান্ত মূল আইন।",
+    "en": "Core law on offences and punishments."
+  },
+  "keywords": [
+    "চুরি",
+    "theft"
+  ],
+  "source": {
+    "name": "bdlaws.minlaw.gov.bd",
+    "url": "https://bdlaws.minlaw.gov.bd/act-11.html",
+    "last_verified": "2026-09-30"
+  },
+  "sections": [
+    {
+      "no": "378",
+      "chapter": {
+        "bn": "অধ্যায় ১৭",
+        "en": "Chapter XVII"
+      },
+      "heading": {
+        "bn": "চুরি",
+        "en": "Theft"
+      },
+      "text": {
+        "bn": "যে ব্যক্তি অসদুদ্দেশ্যে অন্যের অনুমতি ছাড়া কোনো জিনিস সরিয়ে নেয়...",
+        "en": "Whoever, intending to take dishonestly any movable property..."
+      },
+      "explain": {
+        "bn": "অন্যের জিনিস না বলে নিলে চুরি।"
+      },
+      "punishment": {
+        "en": "Up to 3 years or fine."
+      }
+    },
+    {
+      "no": "379",
+      "chapter": {
+        "bn": "অধ্যায় ১৭",
+        "en": "Chapter XVII"
+      },
+      "heading": {
+        "bn": "চুরির শাস্তি",
+        "en": "Punishment for theft"
+      },
+      "text": {
+        "en": "Whoever commits theft shall be punished..."
+      }
+    }
+  ]
+}

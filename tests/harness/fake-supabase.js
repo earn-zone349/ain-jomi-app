@@ -15,19 +15,6 @@ const db = {
   audit: [],
   session: null,
   tables: {
-    categories: [
-      { id: 'c1', slug: 'criminal', name_bn: 'ফৌজদারি আইন', name_en: 'Criminal Law', icon: 'scale', sort_order: 10, status: 'published', updated_at: iso(1) },
-      { id: 'c2', slug: 'civil-land', name_bn: 'দেওয়ানি ও ভূমি আইন', name_en: 'Civil & Land Law', icon: 'land', sort_order: 20, status: 'published', updated_at: iso(2) },
-    ],
-    laws: [
-      { id: 'l1', category_id: 'c1', slug: 'penal-code', title_bn: 'দণ্ডবিধি, ১৮৬০', title_en: 'The Penal Code, 1860', act_number: 'XLV', year: 1860, summary_bn: 'অপরাধ ও শাস্তি সংক্রান্ত মূল আইন।', summary_en: 'Core law on offences and punishments.', source_name: 'bdlaws.minlaw.gov.bd', source_url: 'http://bdlaws.minlaw.gov.bd/act-11.html', law_status: 'in_force', last_verified_at: '2026-09-30', status: 'published', updated_at: iso(3) },
-      { id: 'l2', category_id: 'c2', slug: 'state-acquisition', title_bn: 'রাষ্ট্রীয় অধিগ্রহণ ও প্রজাস্বত্ব আইন, ১৯৫০', title_en: 'State Acquisition and Tenancy Act, 1950', act_number: 'XXVIII', year: 1950, summary_bn: null, summary_en: 'Land tenancy rules.', law_status: 'amended', status: 'published', updated_at: iso(4) },
-      { id: 'l3', category_id: 'c1', slug: 'old-law', title_bn: 'পুরোনো আইন', title_en: 'An Old Repealed Law', law_status: 'repealed', status: 'published', updated_at: iso(5) },
-    ],
-    law_sections: [
-      { id: 's1', law_id: 'l1', section_no: '378', heading_bn: 'চুরি', heading_en: 'Theft', text_bn: 'যে ব্যক্তি অসদুদ্দেশ্যে অন্যের অনুমতি ছাড়া কোনো জিনিস সরিয়ে নেয়...', text_en: 'Whoever, intending to take dishonestly any movable property...', explain_bn: 'অন্যের জিনিস না বলে নিলে চুরি।', explain_en: null, punishment_bn: null, punishment_en: 'Up to 3 years or fine.', sort_order: 100, status: 'published', updated_at: iso(6) },
-      { id: 's2', law_id: 'l1', section_no: '379', heading_bn: 'চুরির শাস্তি', heading_en: 'Punishment for theft', text_bn: null, text_en: 'Whoever commits theft shall be punished...', sort_order: 110, status: 'published', updated_at: iso(7) },
-    ],
     faqs: [],
     notices: [{ id: 'n1', kind: 'update', title_bn: 'আইন হালনাগাদ', title_en: 'Law update', body_bn: 'দণ্ডবিধির তথ্য যাচাই হয়েছে।', body_en: 'Penal Code details verified.', status: 'published', updated_at: iso(8) }],
     legal_pages: [],

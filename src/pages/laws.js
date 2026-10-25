@@ -2,9 +2,9 @@
 
 import { h, clear, debounce } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
-import { badge, emptyState, button } from '../ui/components.js';
+import { badge, emptyState } from '../ui/components.js';
 import { t, pick, num } from '../i18n/index.js';
-import { getCategories, searchLaws, getLawCount, subscribe, getStatus, syncContent } from '../core/content.js';
+import { getCategories, getCategory, searchLaws, getLawCount, subscribe, loadSearchIndex } from '../core/content.js';
 
 export default function render({ query }) {
   let q = (query.q || '').slice(0, 100);
@@ -52,18 +52,16 @@ export default function render({ query }) {
 
   function paintResults() {
     clear(resultsEl);
+    const cat = categoryId ? getCategory(categoryId) : null;
+    if (cat && pick(cat, 'desc')) resultsEl.appendChild(h('p', { class: 'muted small' }, pick(cat, 'desc')));
     const laws = searchLaws(q, { categoryId });
-    const st = getStatus();
 
     if (!getLawCount()) {
-      resultsEl.appendChild(
-        emptyState({
-          iconName: st.syncing ? 'refresh' : 'book',
-          title: st.syncing ? t('home.loadingContent') : t('laws.noneYet'),
-          body: st.syncing ? null : t('laws.noneYetHint'),
-          action: st.syncing ? null : button(t('settings.syncNow'), { variant: 'primary', icon: 'refresh', onClick: () => syncContent({ force: true }) }),
-        }),
-      );
+      resultsEl.appendChild(emptyState({ iconName: 'book', title: t('laws.noneYet'), body: t('laws.catalogEmpty') }));
+      return;
+    }
+    if (!laws.length && !q && categoryId) {
+      resultsEl.appendChild(emptyState({ iconName: 'book', title: t('home.soon'), body: t('laws.categoryEmpty') }));
       return;
     }
 
@@ -111,6 +109,7 @@ export default function render({ query }) {
     }, 200),
   );
 
+  loadSearchIndex();
   paintChips();
   paintResults();
   const unsubscribe = subscribe(() => {

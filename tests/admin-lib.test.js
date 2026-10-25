@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { slugify, coerceRow, friendlyError, restorableFields, parseJsonInput, isVersion } from '../web/admin/admin-lib.js';
 import { TABLES } from '../web/admin/schema-config.js';
+import { LAW_FIELDS } from './fixtures/law-fields.js';
 
 test('slugify', () => {
   assert.equal(slugify('The Penal Code, 1860'), 'the-penal-code-1860');
@@ -11,7 +12,7 @@ test('slugify', () => {
 });
 
 test('coerceRow: required, numbers, nulls, defaults', () => {
-  const fields = TABLES.laws.fields;
+  const fields = LAW_FIELDS;
   const bad = coerceRow(fields, { title_bn: '', title_en: 'x', slug: 'xx', year: '19x0' });
   assert.ok(bad.errors.title_bn);
   assert.ok(bad.errors.slug === undefined);
@@ -27,7 +28,7 @@ test('coerceRow: required, numbers, nulls, defaults', () => {
 });
 
 test('coerceRow: rejects bad urls, slugs, dates, select values, out-of-range numbers', () => {
-  const f = TABLES.laws.fields;
+  const f = LAW_FIELDS;
   const base = { title_bn: 'a', title_en: 'a', slug: 'ok-slug' };
   assert.ok(coerceRow(f, { ...base, source_url: 'javascript:alert(1)' }).errors.source_url);
   assert.ok(coerceRow(f, { ...base, slug: 'Bad Slug' }).errors.slug);

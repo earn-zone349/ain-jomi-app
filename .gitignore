@@ -14,3 +14,5 @@ android/local.properties
 tests/e2e/shots/
 dist-web/
 keystore-secrets.txt
+public/data/
+tests/harness/data/
