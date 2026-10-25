@@ -1,0 +1,36 @@
+Terms of Use
+
+Effective: {{EFFECTIVE_DATE}}
+
+# 1. About these terms
+By using {{APP_NAME}} you agree to these terms. If you do not agree, please do not use the app.
+
+# 2. Information only, not legal advice
+The app provides general legal information and tools. It is not legal advice and does not create a lawyer-client relationship. See the Important Notice in the app. For important decisions, consult a licensed advocate.
+
+# 3. Accuracy
+We try to take laws from official sources and keep them current, and we show the source and the date we last checked. Laws change, and mistakes can happen. We do not guarantee that the content is complete, current or error-free. If you see a mistake, please use the "Report a problem" option.
+
+# 4. Your account
+You are responsible for keeping your password safe and for what happens under your account. Give accurate information and do not use someone else's account. You can delete your account at any time from Settings.
+
+# 5. Acceptable use
+You agree not to misuse the app. That includes trying to break or overload it, scraping or copying its content in bulk, trying to access other people's data, sending false reports, or using it for anything unlawful.
+
+# 6. Content and ownership
+The text of laws is public. The explanations, translations, design, software and compilation in the app belong to {{APP_NAME}} and its contributors, and you may use them for your personal, non-commercial use. Please do not republish them at scale without written permission.
+
+# 7. Services from others
+Links to government websites and other services are provided for convenience. We do not control them and are not responsible for their content or availability.
+
+# 8. Limitation of liability
+To the extent allowed by law, {{APP_NAME}} and its team are not liable for any loss caused by relying on the information or tools in the app. Nothing in these terms limits any right you have under the laws of Bangladesh that cannot be limited.
+
+# 9. Changes
+We may update the app and these terms. When a change matters, we will tell you in the app. Continuing to use the app after a change means you accept it.
+
+# 10. Governing law
+These terms are governed by the laws of Bangladesh.
+
+# 11. Contact
+Questions about these terms: {{SUPPORT_EMAIL}}

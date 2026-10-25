@@ -1,0 +1,18 @@
+{
+  "appId": "bd.ainjomi.app",
+  "appName": "Ain Jomi",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#0b4f43"
+    }
+  }
+}

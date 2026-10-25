@@ -1,0 +1,69 @@
+/* Design tokens. Light is the default; [data-theme="dark"] overrides. */
+:root {
+  --font: 'Noto Sans Bengali', 'Hind Siliguri', 'Kalpurush', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --c-primary: #0f5c4d;
+  --c-primary-600: #0b4a3e;
+  --c-primary-100: #d9efe9;
+  --c-on-primary: #ffffff;
+  --c-accent: #b7791f;
+
+  --c-bg: #f5f7f6;
+  --c-surface: #ffffff;
+  --c-surface-2: #eef2f0;
+  --c-border: #d8dfdc;
+  --c-text: #14201d;
+  --c-muted: #55645f;
+  --c-link: #0b6b58;
+
+  --c-danger: #b42318;
+  --c-danger-bg: #fdecea;
+  --c-warning: #8a5a00;
+  --c-warning-bg: #fff4d6;
+  --c-success: #11704f;
+  --c-success-bg: #e0f4ec;
+  --c-info: #1d5f8a;
+  --c-info-bg: #e3f0f8;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --shadow: 0 1px 2px rgba(16, 32, 28, 0.06), 0 4px 14px rgba(16, 32, 28, 0.06);
+
+  --topbar-h: 56px;
+  --tabbar-h: 62px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --fs-base: 16px;
+}
+
+:root[data-text-size='small'] { --fs-base: 14.5px; }
+:root[data-text-size='large'] { --fs-base: 18px; }
+
+:root[data-theme='dark'] {
+  --c-primary: #3fb59c;
+  --c-primary-600: #5cc7af;
+  --c-primary-100: #17332d;
+  --c-on-primary: #06201a;
+  --c-accent: #e0a94a;
+
+  --c-bg: #0e1513;
+  --c-surface: #161f1c;
+  --c-surface-2: #1d2825;
+  --c-border: #2b3834;
+  --c-text: #e7efec;
+  --c-muted: #9db0aa;
+  --c-link: #6fd3bb;
+
+  --c-danger: #ff8a7a;
+  --c-danger-bg: #3a1a17;
+  --c-warning: #f0c36b;
+  --c-warning-bg: #35290d;
+  --c-success: #6fd9ae;
+  --c-success-bg: #12302a;
+  --c-info: #82c3ea;
+  --c-info-bg: #122b3a;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.35);
+}

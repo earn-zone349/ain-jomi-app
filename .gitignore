@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+.DS_Store
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+.vite/
+tests/e2e/shots/
+dist-web/
+keystore-secrets.txt

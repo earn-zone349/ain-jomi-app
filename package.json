@@ -1,0 +1,32 @@
+{
+  "name": "ain-jomi-app",
+  "version": "0.1.0",
+  "description": "Bangladesh Legal & Land Super App (Phase 0 foundation)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "legal": "node scripts/build-legal.mjs",
+    "check": "node scripts/check-source.mjs",
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/build-legal.mjs && vite build",
+    "build:web": "node scripts/build-legal.mjs && vite build --config vite.web.config.js",
+    "preview": "vite preview",
+    "cap:sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0",
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "vite": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

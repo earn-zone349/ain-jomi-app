@@ -1,0 +1,17 @@
+@import '../src/styles/tokens.css';
+@import '../src/styles/base.css';
+@import '../src/styles/components.css';
+
+body { overflow: auto; height: auto; }
+.site { max-width: 760px; margin: 0 auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 18px; }
+.site-head { display: flex; align-items: center; gap: 12px; }
+.site-head h1 { font-size: 1.4rem; }
+.site-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.site-nav a { padding: 8px 14px; border-radius: 999px; background: var(--c-surface-2); text-decoration: none; font-weight: 600; color: var(--c-text); }
+.doc { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); padding: 18px; }
+.doc h2 { font-size: 1.3rem; margin-bottom: 8px; }
+.doc h3 { font-size: 1.05rem; margin: 16px 0 6px; }
+.doc p, .doc li { line-height: 1.75; }
+.doc ul { list-style: disc; padding-inline-start: 22px; }
+.doc p + p, .doc ul, .doc p + ul { margin-top: 8px; }
+.reset { max-width: 420px; margin: 0 auto; padding: 40px 18px; display: flex; flex-direction: column; gap: 14px; }

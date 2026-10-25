@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="bn-BD" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>harness</title>
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/components.css" />
+    <script src="/public/theme-init.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "@supabase/supabase-js": "/tests/harness/fake-supabase.js",
+          "@capacitor/core": "/tests/harness/stub-capacitor-core.js",
+          "@capacitor/app": "/tests/harness/stub-empty.js",
+          "@capacitor/splash-screen": "/tests/harness/stub-empty.js",
+          "@capacitor/status-bar": "/tests/harness/stub-empty.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
