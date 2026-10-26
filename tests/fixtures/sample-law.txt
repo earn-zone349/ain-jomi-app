@@ -1,0 +1,27 @@
+// নমুনা (শুধু পরীক্ষার জন্য, আসল আইন নয়)
+slug: sample-act-2000
+category: civil-law
+status: published
+title.bn: নমুনা আইন, ২০০০
+title.en: Sample Act, 2000
+year: 2000
+source.name: example
+source.url: https://example.gov.bd/
+source.last_verified: 2026-10-26
+keywords: নমুনা, sample
+
+@@ অধ্যায় ১ | Chapter 1
+§ ১ | সংক্ষিপ্ত শিরোনাম | Short title
+প্রথম লাইন।
+
+দ্বিতীয় অনুচ্ছেদ।
+--en
+First line.
+--explain
+সহজ কথায় ব্যাখ্যা।
+--punishment.en
+None.
+
+@@
+§ 2ক | সংজ্ঞা
+কেবল বাংলা পাঠ।

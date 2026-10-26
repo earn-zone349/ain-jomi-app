@@ -8,6 +8,7 @@
     "dev": "node scripts/build-laws.mjs && vite",
     "legal": "node scripts/build-legal.mjs",
     "laws": "node scripts/build-laws.mjs",
+    "laws:import": "node scripts/text-to-law.mjs",
     "check": "node scripts/check-source.mjs",
     "test": "node --test tests/*.test.js",
     "build": "node scripts/build-legal.mjs && node scripts/build-laws.mjs && vite build",

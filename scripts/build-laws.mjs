@@ -159,24 +159,19 @@ export function validateLaw(json, file, categoryIds) {
     last_verified_at: verified,
     section_count: sections.length,
   };
-  const searchText = normalizeText(
-    [
-      sbn,
-      sen,
-      ...keywords,
-      ...sections.flatMap((s) => [s.section_no, s.heading_bn, s.heading_en, s.text_bn, s.text_en, s.explain_bn, s.explain_en]),
-    ]
-      .filter(Boolean)
-      .join(' '),
-  );
+  // Per-section text lets the app say which sections matched a search.
+  const searchSections = sections.map((s) => [
+    s.section_no,
+    normalizeText([s.heading_bn, s.heading_en, s.text_bn, s.text_en, s.explain_bn, s.explain_en].filter(Boolean).join(' ')),
+  ]);
   const titleExtra = normalizeText(keywords.join(' '));
-  return { errors, warnings, law: { entry, sections, searchText, titleExtra } };
+  return { errors, warnings, law: { entry, sections, searchSections, titleExtra } };
 }
 
 /** Pure: turn validated laws + categories into the three output documents. */
 export function buildOutputs(categories, laws, generatedAt = new Date().toISOString()) {
   const sorted = [...laws].sort((a, b) => a.entry.slug.localeCompare(b.entry.slug));
-  const search = Object.fromEntries(sorted.map((l) => [l.entry.slug, { b: l.searchText, k: l.titleExtra }]));
+  const search = Object.fromEntries(sorted.map((l) => [l.entry.slug, { k: l.titleExtra, s: l.searchSections }]));
   const hash = createHash('sha256');
   hash.update(JSON.stringify(categories));
   for (const l of sorted) hash.update(JSON.stringify([l.entry, l.sections]));

@@ -324,8 +324,9 @@ export function getLegalPage(slug) {
 function buildHaystacks() {
   const out = new Map();
   for (const l of catalog.laws.values()) {
-    const title = normalizeText([l.title_bn, l.title_en, l.act_number, l.year, searchIndex?.[l.id]?.k].filter(Boolean).join(' '));
-    const body = normalizeText([l.summary_bn, l.summary_en, searchIndex?.[l.id]?.b].filter(Boolean).join(' '));
+    const idx = searchIndex?.[l.id];
+    const title = normalizeText([l.title_bn, l.title_en, l.act_number, l.year, idx?.k].filter(Boolean).join(' '));
+    const body = normalizeText([l.summary_bn, l.summary_en, ...(idx?.s || []).map(([no, text]) => `${no} ${text}`)].filter(Boolean).join(' '));
     out.set(l.id, { title, body });
   }
   return out;
@@ -348,6 +349,24 @@ export function searchLaws(query, { categoryId = null } = {}) {
   }
   results.sort((a, b) => a.rank - b.rank);
   return results.map((r) => r.law);
+}
+
+/**
+ * Section numbers of a law whose text matches every word of the query (needs the search index; empty before it loads).
+ * A match on the section number itself counts, so typing "378" finds section 378.
+ */
+export function getSectionHits(lawId, query, limit = 3) {
+  const q = normalizeText(query);
+  const idx = searchIndex?.[lawId];
+  if (!q || !idx) return [];
+  const words = q.split(' ');
+  const hits = [];
+  for (const [no, text] of idx.s || []) {
+    const hay = `${normalizeText(no)} ${text}`;
+    if (words.every((w) => hay.includes(w))) hits.push(no);
+    if (hits.length >= limit) break;
+  }
+  return hits;
 }
 
 // ---------------------------------------------------------------------------------------------

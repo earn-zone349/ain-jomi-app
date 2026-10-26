@@ -9,14 +9,16 @@ import { renderParagraphs } from '../ui/richtext.js';
 import { t, pick, isFallback, formatDate, num } from '../i18n/index.js';
 import { getLaw, getSections, getCategory, subscribe, loadSections } from '../core/content.js';
 import { getAuth } from '../core/auth.js';
+import { isSaved, toggleSaved, addRecent, subscribeLibrary } from '../core/library.js';
 import { supabase, errorCode } from '../core/supabase.js';
 import { logError } from '../core/logger.js';
-import { uuidFromString } from '../lib/text.js';
+import { uuidFromString, toAsciiDigits, normalizeText } from '../lib/text.js';
 
-export default function render({ params, navigate }) {
+export default function render({ params, query, navigate }) {
   const root = h('div', { class: 'page' });
   const lawId = params.id;
   let sectionsState = 'loading'; // loading | ready | failed
+  let jumped = false; // the ?s= deep link is followed only once
 
   function paint() {
     root.replaceChildren();
@@ -51,7 +53,7 @@ export default function render({ params, navigate }) {
           law.last_verified_at ? factRow(t('law.verified'), formatDate(law.last_verified_at)) : null,
           law.source_url ? factRow(t('law.source'), externalLink(law.source_url, law.source_name || t('law.officialSource'))) : law.source_name ? factRow(t('law.source'), law.source_name) : null,
         ),
-        h('div', { class: 'btn-row' }, button(t('common.share'), { icon: 'share', onClick: () => share(law) }), button(t('law.report'), { icon: 'flag', onClick: () => openReport({ type: 'law', id: law.id, title: pick(law, 'title'), navigate }) })),
+        h('div', { class: 'btn-row' }, button(isSaved(law.id) ? t('law.saved') : t('law.save'), { icon: 'bookmark', variant: isSaved(law.id) ? 'primary' : 'secondary', onClick: () => toggleSaved(law.id) }), button(t('common.share'), { icon: 'share', onClick: () => share(law) }), button(t('law.report'), { icon: 'flag', onClick: () => openReport({ type: 'law', id: law.id, title: pick(law, 'title'), navigate }) })),
       ),
     );
 
@@ -66,7 +68,12 @@ export default function render({ params, navigate }) {
     } else if (!sections.length) {
       root.appendChild(h('p', { class: 'muted' }, t('law.noSections')));
     } else {
+      if (sections.length > 8) root.appendChild(jumpForm(root));
       root.appendChild(h('div', { class: 'accordion' }, sections.map((s, i) => sectionItem(s, law, navigate, i > 0 ? sections[i - 1] : null))));
+      if (!jumped && query?.s) {
+        jumped = true;
+        openSection(root, query.s);
+      }
     }
 
     root.appendChild(h('p', { class: 'fineprint' }, icon('info', 'icon-inline'), t('law.disclaimerShort')));
@@ -83,9 +90,52 @@ export default function render({ params, navigate }) {
       sectionsState = 'failed';
       paint();
     });
-  const unsubscribe = subscribe(paint);
+  const unsubscribeContent = subscribe(paint);
+  const unsubscribeLibrary = subscribeLibrary(paint);
+  const unsubscribe = () => {
+    unsubscribeContent();
+    unsubscribeLibrary();
+  };
   const law = getLaw(lawId);
+  if (law) addRecent(law.id);
   return { el: root, title: law ? pick(law, 'title') : t('nav.laws'), destroy: unsubscribe };
+}
+
+/** Opens the section with this number and scrolls to it. Returns false if there is no such section. */
+function openSection(root, rawNo) {
+  const want = normalizeText(toAsciiDigits(rawNo));
+  const item = [...root.querySelectorAll('details.acc-item')].find((d) => normalizeText(d.dataset.no) === want);
+  if (!item) return false;
+  item.open = true;
+  requestAnimationFrame(() => item.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+  return true;
+}
+
+function jumpForm(root) {
+  const input = h('input', { class: 'input', type: 'search', inputmode: 'numeric', placeholder: t('law.jumpPlaceholder'), 'aria-label': t('law.jumpPlaceholder'), enterkeyhint: 'go' });
+  return h(
+    'form',
+    {
+      class: 'jump',
+      onsubmit: (e) => {
+        e.preventDefault();
+        const v = input.value.trim();
+        if (v && !openSection(root, v)) toast(t('law.jumpNotFound', { no: v }), { tone: 'error' });
+      },
+    },
+    input,
+    button(t('law.jumpGo'), { type: 'submit', variant: 'primary' }),
+  );
+}
+
+async function copySection(s, law) {
+  const text = [`${pick(law, 'title')} · ${t('law.section')} ${s.section_no}${pick(s, 'heading') ? ` — ${pick(s, 'heading')}` : ''}`, pick(s, 'text'), law.source_url || law.source_name || ''].filter(Boolean).join('\n\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(t('common.copied'));
+  } catch {
+    toast(t('error.generic'), { tone: 'error' });
+  }
 }
 
 function factRow(label, value) {
@@ -119,6 +169,7 @@ function sectionItem(s, law, navigate, prev) {
     h(
       'div',
       { class: 'btn-row' },
+      button(t('law.copySection'), { variant: 'ghost', icon: 'copy', onClick: () => copySection(s, law) }),
       button(t('law.reportSection'), {
         variant: 'ghost',
         icon: 'flag',
@@ -126,7 +177,7 @@ function sectionItem(s, law, navigate, prev) {
       }),
     ),
   );
-  const item = h('details', { class: 'acc-item' }, summary, body);
+  const item = h('details', { class: 'acc-item', dataset: { no: s.section_no } }, summary, body);
   return showChapter ? h('div', { class: 'acc-group' }, h('p', { class: 'sec-chapter' }, chapter), item) : item;
 }
 

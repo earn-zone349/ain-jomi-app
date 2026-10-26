@@ -14,8 +14,11 @@ import {
   syncContent,
   getLawCount,
   loadSearchIndex,
+  getLaw,
+  getFaqs,
 } from '../core/content.js';
 import { getAuth } from '../core/auth.js';
+import { getRecentIds, subscribeLibrary } from '../core/library.js';
 import { CONFIG } from '../config.js';
 
 const NOTICE_TONE = { info: 'info', update: 'success', warning: 'warning' };
@@ -77,6 +80,21 @@ export default function render({ navigate }) {
     dynamic.appendChild(statusLine(st));
 
     // Categories (the list ships inside the app, so it is always there)
+    // Recently viewed laws (this phone only)
+    const recent = getRecentIds().map((id) => getLaw(id)).filter(Boolean).slice(0, 5);
+    if (recent.length) {
+      dynamic.appendChild(sectionTitle(t('home.recent')));
+      dynamic.appendChild(
+        h(
+          'ul',
+          { class: 'list' },
+          recent.map((law) =>
+            h('li', null, h('a', { class: 'row', href: `#/law/${encodeURIComponent(law.id)}` }, h('span', { class: 'row-icon' }, icon('clock')), h('span', { class: 'row-text' }, h('span', { class: 'row-title' }, pick(law, 'title'))), icon('next', 'row-chevron'))),
+          ),
+        ),
+      );
+    }
+
     // Categories that already have laws come first; empty ones follow as "coming soon".
     const cats = getCategories().sort((a, b) => Number(getLawCount(b.id) > 0) - Number(getLawCount(a.id) > 0));
     dynamic.appendChild(sectionTitle(t('home.categories')));
@@ -101,6 +119,13 @@ export default function render({ navigate }) {
       );
     }
 
+    // Common questions (edited in the admin panel)
+    if (getFaqs().length) {
+      dynamic.appendChild(
+        h('a', { class: 'row', href: '#/faq' }, h('span', { class: 'row-icon' }, icon('question')), h('span', { class: 'row-text' }, h('span', { class: 'row-title' }, t('home.faq'))), icon('next', 'row-chevron')),
+      );
+    }
+
     // Coming soon strip
     dynamic.appendChild(sectionTitle(t('home.comingSoon'), h('a', { class: 'link', href: '#/tools' }, t('home.seeAll'))));
     dynamic.appendChild(
@@ -113,7 +138,12 @@ export default function render({ navigate }) {
   }
 
   paint();
-  const unsubscribe = subscribe(paint);
+  const unsubContent = subscribe(paint);
+  const unsubLibrary = subscribeLibrary(paint);
+  const unsubscribe = () => {
+    unsubContent();
+    unsubLibrary();
+  };
   return { el: root, title: appName(), destroy: unsubscribe };
 }
 

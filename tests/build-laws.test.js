@@ -78,7 +78,7 @@ test('outputs: index has no section text, search and laws files are keyed by slu
   assert.equal(a.index.version, b.index.version);
   assert.ok(!JSON.stringify(a.index).includes('পাঠ'));
   assert.ok(a.lawFiles['penal-code-1860'].sections[0].text_bn === 'পাঠ');
-  assert.ok(a.search['penal-code-1860'].b.includes('পাঠ'));
+  assert.deepEqual(a.search['penal-code-1860'].s, [['1', 'পাঠ']]);
   const changed = validateLaw({ ...good(), sections: [{ no: '1', text: { bn: 'অন্য' } }] }, 'penal-code-1860.json', cats).law;
   assert.notEqual(buildOutputs([{ id: 'criminal-law' }], [changed]).index.version, a.index.version);
 });

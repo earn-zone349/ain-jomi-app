@@ -17,6 +17,7 @@ const ROUTES = [
   { path: '/', load: () => import('./pages/home.js'), tab: 'home' },
   { path: '/laws', load: () => import('./pages/laws.js'), tab: 'laws' },
   { path: '/law/:id', load: () => import('./pages/law.js'), tab: 'laws', back: true },
+  { path: '/faq', load: () => import('./pages/faq.js'), tab: 'home', back: true },
   { path: '/tools', load: () => import('./pages/tools.js'), tab: 'tools' },
   { path: '/settings', load: () => import('./pages/settings.js'), tab: 'settings' },
   { path: '/login', load: () => import('./pages/login.js'), chrome: false },

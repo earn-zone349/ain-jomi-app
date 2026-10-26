@@ -55,6 +55,69 @@
       "text": {
         "en": "Whoever commits theft shall be punished..."
       }
+    },
+    {
+      "no": "380",
+      "heading": {
+        "en": "Test section 380"
+      },
+      "text": {
+        "en": "Fixture text for section 380."
+      }
+    },
+    {
+      "no": "381",
+      "heading": {
+        "en": "Test section 381"
+      },
+      "text": {
+        "en": "Fixture text for section 381."
+      }
+    },
+    {
+      "no": "382",
+      "heading": {
+        "en": "Test section 382"
+      },
+      "text": {
+        "en": "Fixture text for section 382."
+      }
+    },
+    {
+      "no": "383",
+      "heading": {
+        "en": "Test section 383"
+      },
+      "text": {
+        "en": "Fixture text for section 383."
+      }
+    },
+    {
+      "no": "384",
+      "heading": {
+        "en": "Test section 384"
+      },
+      "text": {
+        "en": "Fixture text for section 384."
+      }
+    },
+    {
+      "no": "385",
+      "heading": {
+        "en": "Test section 385"
+      },
+      "text": {
+        "en": "Fixture text for section 385."
+      }
+    },
+    {
+      "no": "386",
+      "heading": {
+        "en": "Test section 386"
+      },
+      "text": {
+        "en": "Fixture text for section 386."
+      }
     }
   ]
 }

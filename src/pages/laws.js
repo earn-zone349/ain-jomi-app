@@ -4,11 +4,13 @@ import { h, clear, debounce } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { badge, emptyState } from '../ui/components.js';
 import { t, pick, num } from '../i18n/index.js';
-import { getCategories, getCategory, searchLaws, getLawCount, subscribe, loadSearchIndex } from '../core/content.js';
+import { getCategories, getCategory, searchLaws, getLawCount, getSectionHits, subscribe, loadSearchIndex } from '../core/content.js';
+import { getSavedIds, subscribeLibrary } from '../core/library.js';
 
 export default function render({ query }) {
   let q = (query.q || '').slice(0, 100);
   let categoryId = query.cat || null;
+  let savedOnly = query.saved === '1';
 
   const root = h('div', { class: 'page' });
 
@@ -24,6 +26,7 @@ export default function render({ query }) {
     const params = new URLSearchParams();
     if (q) params.set('q', q);
     if (categoryId) params.set('cat', categoryId);
+    if (savedOnly) params.set('saved', '1');
     const qs = params.toString();
     history.replaceState(history.state, '', `#/laws${qs ? `?${qs}` : ''}`);
   }
@@ -35,9 +38,10 @@ export default function render({ query }) {
         'button',
         {
           type: 'button',
-          class: `chip${(categoryId || null) === id ? ' chip-active' : ''}`,
-          'aria-pressed': (categoryId || null) === id ? 'true' : 'false',
+          class: `chip${!savedOnly && (categoryId || null) === id ? ' chip-active' : ''}`,
+          'aria-pressed': !savedOnly && (categoryId || null) === id ? 'true' : 'false',
           onclick: () => {
+            savedOnly = false;
             categoryId = id;
             syncUrl();
             paintChips();
@@ -47,6 +51,25 @@ export default function render({ query }) {
         label,
       );
     chipsEl.appendChild(mk(null, t('laws.all')));
+    chipsEl.appendChild(
+      h(
+        'button',
+        {
+          type: 'button',
+          class: `chip${savedOnly ? ' chip-active' : ''}`,
+          'aria-pressed': savedOnly ? 'true' : 'false',
+          onclick: () => {
+            savedOnly = !savedOnly;
+            categoryId = null;
+            syncUrl();
+            paintChips();
+            paintResults();
+          },
+        },
+        icon('bookmark', 'icon-inline'),
+        t('laws.saved'),
+      ),
+    );
     getCategories().forEach((c) => chipsEl.appendChild(mk(c.id, pick(c, 'name'))));
   }
 
@@ -54,7 +77,15 @@ export default function render({ query }) {
     clear(resultsEl);
     const cat = categoryId ? getCategory(categoryId) : null;
     if (cat && pick(cat, 'desc')) resultsEl.appendChild(h('p', { class: 'muted small' }, pick(cat, 'desc')));
-    const laws = searchLaws(q, { categoryId });
+    let laws = searchLaws(q, { categoryId });
+    if (savedOnly) {
+      const saved = new Set(getSavedIds());
+      laws = laws.filter((l) => saved.has(l.id));
+      if (!laws.length && !q) {
+        resultsEl.appendChild(emptyState({ iconName: 'bookmark', title: t('laws.saved'), body: t('laws.savedEmpty') }));
+        return;
+      }
+    }
 
     if (!getLawCount()) {
       resultsEl.appendChild(emptyState({ iconName: 'book', title: t('laws.noneYet'), body: t('laws.catalogEmpty') }));
@@ -78,18 +109,21 @@ export default function render({ query }) {
         { class: 'list' },
         laws.map((law) => {
           const meta = [law.act_number ? `${t('law.act')} ${law.act_number}` : null, law.year ? num(law.year) : null, catById.has(law.category_id) ? pick(catById.get(law.category_id), 'name') : null].filter(Boolean).join(' · ');
+          const hits = q ? getSectionHits(law.id, q) : [];
+          const href = `#/law/${encodeURIComponent(law.id)}${hits.length ? `?s=${encodeURIComponent(hits[0])}` : ''}`;
           return h(
             'li',
             null,
             h(
               'a',
-              { class: 'row', href: `#/law/${encodeURIComponent(law.id)}` },
+              { class: 'row', href },
               h('span', { class: 'row-icon' }, icon('file')),
               h(
                 'span',
                 { class: 'row-text' },
                 h('span', { class: 'row-title' }, pick(law, 'title')),
                 meta ? h('span', { class: 'row-sub' }, meta) : null,
+                hits.length ? h('span', { class: 'row-hit' }, t('laws.matchedSections', { list: hits.map((n) => num(n)).join(', ') })) : null,
                 law.law_status !== 'in_force' ? badge(t(`law.status.${law.law_status}`), law.law_status === 'repealed' ? 'danger' : 'warning') : null,
               ),
               icon('next', 'row-chevron'),
@@ -112,9 +146,15 @@ export default function render({ query }) {
   loadSearchIndex();
   paintChips();
   paintResults();
-  const unsubscribe = subscribe(() => {
+  const repaint = () => {
     paintChips();
     paintResults();
-  });
+  };
+  const unsubContent = subscribe(repaint);
+  const unsubLibrary = subscribeLibrary(repaint);
+  const unsubscribe = () => {
+    unsubContent();
+    unsubLibrary();
+  };
   return { el: root, title: t('nav.laws'), destroy: unsubscribe };
 }

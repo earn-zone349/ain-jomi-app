@@ -219,3 +219,8 @@
 .sec-chapter { margin: 14px 2px 6px; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em; color: var(--c-primary); }
 :root[data-theme='dark'] .sec-chapter { color: var(--c-link); }
 .acc-group { display: flex; flex-direction: column; }
+
+.row-hit { font-size: 0.8125rem; color: var(--c-primary); font-weight: 600; }
+:root[data-theme='dark'] .row-hit { color: var(--c-link); }
+.jump { display: flex; gap: 8px; margin-bottom: 10px; }
+.jump .input { flex: 1; }

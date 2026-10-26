@@ -15,7 +15,7 @@ const db = {
   audit: [],
   session: null,
   tables: {
-    faqs: [],
+    faqs: [{ id: 'f1', question_bn: 'আইনজীবী কি লাগবে?', question_en: 'Do I need a lawyer?', answer_bn: 'মামলার ধরনের ওপর নির্ভর করে।', answer_en: 'It depends on the case.', sort_order: 10, status: 'published', updated_at: iso(9) }],
     notices: [{ id: 'n1', kind: 'update', title_bn: 'আইন হালনাগাদ', title_en: 'Law update', body_bn: 'দণ্ডবিধির তথ্য যাচাই হয়েছে।', body_en: 'Penal Code details verified.', status: 'published', updated_at: iso(8) }],
     legal_pages: [],
   },
