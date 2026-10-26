@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 
 // Build the law catalogue from the fixture JSON files, exactly like the real build does.
 execFileSync('node', ['scripts/build-laws.mjs'], { env: { ...process.env, CONTENT_DIR: 'tests/fixtures/content', DATA_OUT: 'tests/harness/data' }, stdio: 'inherit' });
+execFileSync('node', ['scripts/build-land.mjs'], { env: { ...process.env, LAND_OUT: 'tests/harness/data/land' }, stdio: 'inherit' });
 
 // ESM ignores NODE_PATH, so resolve Playwright explicitly (local install or a global one).
 const require = createRequire(import.meta.url);
@@ -237,6 +238,68 @@ await page.evaluate(() => localStorage.removeItem('x-offline'));
 await page.evaluate(() => window.dispatchEvent(new Event('online')));
 await page.waitForTimeout(600);
 check('back online: offline bar hidden', !(await page.locator('.offline-bar').isVisible()));
+
+// 11b. land calculator (offline, bundled data)
+await page.locator('.tab[data-tab="tools"]').click();
+await page.waitForSelector('.module-live');
+check('Tools tab: land calculator is live, others coming soon', (await page.locator('.module-live').count()) === 1 && (await page.locator('.module').count()) === 5);
+await page.locator('.module-live').click();
+await page.waitForSelector('.chip-active');
+check('calculator opens on the converter tab', (await page.locator('.chip-active').first().innerText()).includes('Convert'));
+await page.locator('input[aria-label="Amount"]').first().fill('১');
+await page.waitForTimeout(100);
+const kathaFacts = await text('.result .facts');
+check('1 katha = 720 sq ft (default region), Bangla input accepted', /Square feet\s*720/.test(kathaFacts.replace(/\n/g, ' ').replace(/\t/g, ' ')), kathaFacts);
+check('headline reads "1 Katha" (no stray zero parts)', (await text('.result-big')) === '1 Katha', await text('.result-big'));
+await shot('13a-land-convert');
+await page.locator('select[aria-label="Unit"]').first().selectOption('acre');
+await page.waitForTimeout(100);
+check('1 acre reads "3 Bigha 8 Chhatak" (0.5 katha = 8 chhatak)', (await text('.result-big')) === '3 Bigha 8 Chhatak', await text('.result-big'));
+check('1 acre = 100 shotok', /Decimal \(shotok\)\s*100/.test((await text('.result .facts')).replace(/\s+/g, ' ')), await text('.result .facts'));
+await page.locator('input[aria-label="Amount"]').first().fill('abc');
+await page.waitForTimeout(100);
+check('bad number shows a friendly warning, no crash', (await text('.banner')).includes('Type the number correctly'));
+await page.locator('.chip', { hasText: 'Plot size' }).click();
+const sides = page.locator('input[aria-label="Length"]');
+await sides.fill('20');
+await page.locator('input[aria-label="Width"]').fill('36');
+await page.waitForTimeout(100);
+check('20 ft x 36 ft = 1 katha', (await text('.result-big')).startsWith('1 Bigha') === false && (await text('.result-big')).includes('1 Katha'), await text('.result-big'));
+await page.locator('.btn', { hasText: 'Add to total' }).click();
+await page.locator('.btn', { hasText: 'Add to total' }).click();
+check('parts add up to 2 katha', (await page.locator('.result-big').nth(1).innerText()).includes('2 Katha'), await page.locator('.result-big').count() + '');
+await page.locator('select[aria-label="Shape"]').selectOption('triangleSides');
+await page.locator('input[aria-label="First side"]').fill('1');
+await page.locator('input[aria-label="Second side"]').fill('2');
+await page.locator('input[aria-label="Third side"]').fill('10');
+await page.waitForTimeout(100);
+check('impossible triangle is explained', (await text('.banner')).includes('cannot make a triangle'));
+await page.locator('.chip', { hasText: 'Share' }).click();
+await page.locator('input[aria-label="Amount"]').first().fill('2');
+await page.locator('input[aria-label="Numerator (top)"]').fill('3');
+await page.locator('input[aria-label="Denominator (bottom)"]').fill('8');
+await page.waitForTimeout(100);
+check('3/8 of 2 bigha = 15 katha', (await text('.result-big')).includes('15 Katha') || (await text('.result-big')).includes('0 Bigha 15'), await text('.result-big'));
+await page.locator('input[aria-label="Numerator (top)"]').fill('9');
+await page.waitForTimeout(100);
+check('numerator bigger than denominator is rejected', (await text('.banner')).includes('cannot be bigger'));
+await page.locator('.chip', { hasText: 'Price' }).click();
+await page.locator('input[aria-label="Amount"]').first().fill('5');
+await page.locator('input[aria-label="Taka"]').fill('300000');
+await page.waitForTimeout(100);
+check('5 katha at 3,00,000 per katha = 15,00,000', (await text('.result-big')).replace(/\D/g, '') === '1500000', await text('.result-big'));
+await page.locator('.chip', { hasText: 'Costs' }).click();
+check('cost calculator stays off while no official rates are published', (await text('.state')).includes('have not been added'));
+await page.locator('.chip', { hasText: 'Terms' }).click();
+check('glossary lists terms', (await page.locator('.acc-item').count()) >= 10);
+await shot('13-land');
+await page.locator('.chip', { hasText: 'Convert' }).click();
+await page.locator('select[aria-label="Local unit sizes"]').selectOption('shotok33');
+await page.locator('input[aria-label="Amount"]').first().fill('1');
+await page.locator('select[aria-label="Unit"]').first().selectOption('bigha');
+await page.waitForTimeout(100);
+check('33-shotok region: 1 bigha = 33 shotok', /Decimal \(shotok\)\s*33/.test((await text('.result .facts')).replace(/\s+/g, ' ')), await text('.result .facts'));
+await page.locator('.tab[data-tab="home"]').click();
 
 // 12. maintenance mode blocks the app
 await page.evaluate(() => __fake.setSetting('maintenance_mode', { enabled: true, message_bn: '', message_en: 'Back soon' }));

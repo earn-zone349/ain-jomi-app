@@ -1,5 +1,5 @@
-// Tools tab: the upcoming modules (land calculator, inheritance, ...). Phase 0 only shows
-// them as "coming soon"; a module lights up when the server flag is on AND its route exists.
+// Tools tab: the modules (land calculator, inheritance, ...). A module that ships inside the app (bundled) is
+// always available; the others show "coming soon" until their server flag is on AND their route exists.
 
 import { h } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
@@ -15,7 +15,7 @@ export default function render({ navigate }) {
 
   const list = h('div', { class: 'stack' });
   for (const m of CONFIG.modules) {
-    const available = Boolean(flags[m.id]) && Boolean(m.route);
+    const available = Boolean(m.route) && (Boolean(m.bundled) || Boolean(flags[m.id]));
     const card = h(
       available ? 'button' : 'div',
       {

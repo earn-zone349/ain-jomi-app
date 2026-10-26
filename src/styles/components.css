@@ -224,3 +224,12 @@
 :root[data-theme='dark'] .row-hit { color: var(--c-link); }
 .jump { display: flex; gap: 8px; margin-bottom: 10px; }
 .jump .input { flex: 1; }
+
+/* ---------- Land calculator ---------- */
+.lc-label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 0.9375rem; }
+.inline-fields { display: flex; gap: 8px; }
+.inline-fields .input { flex: 1; min-width: 0; }
+.result-big { font-size: 1.25rem; font-weight: 800; line-height: 1.4; color: var(--c-primary); }
+:root[data-theme='dark'] .result-big { color: var(--c-link); }
+.fact-total { border-top: 1px solid var(--c-border); padding-top: 8px; font-weight: 800; }
+select.input { appearance: auto; }

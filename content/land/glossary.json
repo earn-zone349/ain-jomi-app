@@ -1,0 +1,126 @@
+{
+  "_help": "নতুন শব্দ যোগ করতে একটি আইটেম লিখুন।",
+  "terms": [
+    {
+      "id": "khatian",
+      "term": {
+        "bn": "খতিয়ান",
+        "en": "Khatian"
+      },
+      "meaning": {
+        "bn": "জমির মালিকানা ও দখলের বিবরণ-সংবলিত সরকারি রেকর্ড। একটি খতিয়ানে সাধারণত খতিয়ান নম্বর, মালিকের নাম, মৌজা, দাগ নম্বর ও জমির পরিমাণ থাকে।",
+        "en": "The official record of who owns and holds land. A khatian usually shows its number, owner names, mouza, plot (dag) numbers and area."
+      }
+    },
+    {
+      "id": "dag",
+      "term": {
+        "bn": "দাগ নম্বর",
+        "en": "Dag number"
+      },
+      "meaning": {
+        "bn": "মৌজার জরিপ নকশায় প্রতিটি টুকরো জমির আলাদা নম্বর। একই খতিয়ানে একাধিক দাগ থাকতে পারে।",
+        "en": "The separate number given to each parcel of land on the survey map of a mouza. One khatian can cover several dags."
+      }
+    },
+    {
+      "id": "mouza",
+      "term": {
+        "bn": "মৌজা",
+        "en": "Mouza"
+      },
+      "meaning": {
+        "bn": "ভূমি জরিপ ও রেকর্ডের ক্ষুদ্রতম এলাকা-একক। জমির পরিচয়ে মৌজার নাম অবশ্যই লাগে।",
+        "en": "The smallest area unit used in land survey and records. A mouza name is always part of identifying a piece of land."
+      }
+    },
+    {
+      "id": "porcha",
+      "term": {
+        "bn": "পর্চা",
+        "en": "Porcha"
+      },
+      "meaning": {
+        "bn": "খতিয়ানের অনুলিপি, যা সংশ্লিষ্ট অফিস থেকে নেওয়া হয়।",
+        "en": "A copy of the khatian, issued by the relevant land office."
+      }
+    },
+    {
+      "id": "namjari",
+      "term": {
+        "bn": "নামজারি (মিউটেশন)",
+        "en": "Namjari (mutation)"
+      },
+      "meaning": {
+        "bn": "মালিকানা বদলের পর সরকারি ভূমি রেকর্ডে নতুন মালিকের নাম তোলার প্রক্রিয়া। শুধু দলিল রেজিস্ট্রি হলেই রেকর্ড বদলায় না।",
+        "en": "Changing the owner's name in the government land record after ownership changes. Registering a deed alone does not update the record."
+      }
+    },
+    {
+      "id": "dakhila",
+      "term": {
+        "bn": "দাখিলা",
+        "en": "Dakhila"
+      },
+      "meaning": {
+        "bn": "ভূমি উন্নয়ন কর (খাজনা) পরিশোধের সরকারি রসিদ।",
+        "en": "The official receipt for paying land development tax (khajna)."
+      }
+    },
+    {
+      "id": "khajna",
+      "term": {
+        "bn": "ভূমি উন্নয়ন কর (খাজনা)",
+        "en": "Land development tax (khajna)"
+      },
+      "meaning": {
+        "bn": "জমির মালিকের দেয় বার্ষিক কর। পরিশোধ করলে দাখিলা পাওয়া যায়।",
+        "en": "The annual tax paid by the landowner. Paying it gives a dakhila."
+      }
+    },
+    {
+      "id": "deed",
+      "term": {
+        "bn": "দলিল",
+        "en": "Deed (dolil)"
+      },
+      "meaning": {
+        "bn": "জমি বিক্রি, দান, বন্টন ইত্যাদির লিখিত চুক্তিপত্র।",
+        "en": "A written document recording a sale, gift, partition or similar transfer of land."
+      }
+    },
+    {
+      "id": "registration",
+      "term": {
+        "bn": "রেজিস্ট্রেশন",
+        "en": "Registration"
+      },
+      "meaning": {
+        "bn": "দলিল সাব-রেজিস্ট্রি অফিসে নিবন্ধন করা।",
+        "en": "Registering a deed at the sub-registry office."
+      }
+    },
+    {
+      "id": "khas",
+      "term": {
+        "bn": "খাস জমি",
+        "en": "Khas land"
+      },
+      "meaning": {
+        "bn": "সরকারের মালিকানাধীন জমি। নিয়ম মেনে বন্দোবস্ত পেলে ব্যক্তি বা সংস্থা তা ব্যবহার করতে পারে।",
+        "en": "Land owned by the government. A person or body may use it only if it is formally settled to them under the rules."
+      }
+    },
+    {
+      "id": "survey",
+      "term": {
+        "bn": "জরিপ (CS, SA, RS, BS)",
+        "en": "Surveys (CS, SA, RS, BS)"
+      },
+      "meaning": {
+        "bn": "সময়ে সময়ে হওয়া সরকারি ভূমি জরিপ, যেমন CS (ক্যাডাস্ট্রাল), SA (রাষ্ট্রীয় অধিগ্রহণ), RS (রিভিশনাল) ও BS (বাংলাদেশ জরিপ)। ভিন্ন জরিপের খতিয়ান ভিন্ন হয়, তাই কোন জরিপের খতিয়ান দেখছেন তা মিলিয়ে নিন।",
+        "en": "Government land surveys carried out over time: CS (Cadastral), SA (State Acquisition), RS (Revisional) and BS (Bangladesh Survey). Khatians differ by survey, so check which survey a khatian belongs to."
+      }
+    }
+  ]
+}

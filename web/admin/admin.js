@@ -367,7 +367,8 @@ async function viewSettings() {
   const maintBn = text('maint-bn', 'Maintenance message (বাংলা)', maint.message_bn);
   const maintEn = text('maint-en', 'Maintenance message (English)', maint.message_en);
   const minVer = text('min-ver', 'Minimum app version', cur.min_app_version, 'Phones on an older version are asked to update. Example: 0.1.0');
-  const flagKeys = ['land_calculator', 'inheritance', 'gov_services', 'ai_assistant', 'lawyers'];
+  const flagKeys = ['inheritance', 'gov_services', 'ai_assistant', 'lawyers'];
+  // land_calculator ships inside the app and is always on, so it has no switch here.
   const flagChecks = flagKeys.map((k) => check(`flag-${k}`, `Feature on: ${k}`, flags[k] === true));
   const email = text('contact-email', 'Support email', contact.email);
   const msg = h('div');

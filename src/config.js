@@ -20,10 +20,10 @@ export const CONFIG = {
   // Rows per request when pulling content.
   syncPageSize: 500,
 
-  // Shown as "coming soon" cards on Home. Server-side flags (app_settings.feature_flags)
-  // can switch a module on later; modules still need their code to exist.
+  // Cards on the Tools tab. A module with a route and bundled: true works offline from the app itself and is
+  // always on. Other modules need a route AND the server flag (app_settings.feature_flags) to light up.
   modules: [
-    { id: 'land_calculator', icon: 'calc', route: null },
+    { id: 'land_calculator', icon: 'calc', route: '/tools/land', bundled: true },
     { id: 'inheritance', icon: 'family', route: null },
     { id: 'gov_services', icon: 'land', route: null },
     { id: 'ai_assistant', icon: 'bot', route: null },

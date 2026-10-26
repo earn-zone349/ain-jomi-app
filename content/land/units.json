@@ -1,0 +1,108 @@
+{
+  "_help": "এলাকাভেদে কাঠা/বিঘার মাপ আলাদা। regions-এ নতুন এলাকা যোগ করতে একটি নতুন আইটেম লিখুন। কাঠার মাপ বর্গফুটে দিন।",
+  "area_units": [
+    {
+      "id": "sqft",
+      "name": {
+        "bn": "বর্গফুট",
+        "en": "Square feet"
+      },
+      "sqft": 1
+    },
+    {
+      "id": "sqm",
+      "name": {
+        "bn": "বর্গমিটার",
+        "en": "Square metres"
+      },
+      "sqft": 10.763910416709722
+    },
+    {
+      "id": "shotok",
+      "name": {
+        "bn": "শতক",
+        "en": "Decimal (shotok)"
+      },
+      "sqft": 435.6
+    },
+    {
+      "id": "acre",
+      "name": {
+        "bn": "একর",
+        "en": "Acre"
+      },
+      "sqft": 43560
+    },
+    {
+      "id": "hectare",
+      "name": {
+        "bn": "হেক্টর",
+        "en": "Hectare"
+      },
+      "sqft": 107639.10416709722
+    }
+  ],
+  "length_units": [
+    {
+      "id": "ft",
+      "name": {
+        "bn": "ফুট",
+        "en": "Feet"
+      },
+      "feet": 1
+    },
+    {
+      "id": "inch",
+      "name": {
+        "bn": "ইঞ্চি",
+        "en": "Inches"
+      },
+      "feet": 0.08333333333333333
+    },
+    {
+      "id": "hat",
+      "name": {
+        "bn": "হাত",
+        "en": "Hat (18 in)"
+      },
+      "feet": 1.5
+    },
+    {
+      "id": "gaj",
+      "name": {
+        "bn": "গজ",
+        "en": "Yard (gaj)"
+      },
+      "feet": 3
+    },
+    {
+      "id": "m",
+      "name": {
+        "bn": "মিটার",
+        "en": "Metres"
+      },
+      "feet": 3.280839895013123
+    }
+  ],
+  "regions": [
+    {
+      "id": "standard",
+      "name": {
+        "bn": "ঢাকাসহ বহু এলাকা (১ কাঠা = ৭২০ বর্গফুট)",
+        "en": "Dhaka and many areas (1 katha = 720 sq ft)"
+      },
+      "katha_sqft": 720,
+      "katha_per_bigha": 20
+    },
+    {
+      "id": "shotok33",
+      "name": {
+        "bn": "৩৩ শতকের বিঘা (১ বিঘা = ৩৩ শতক)",
+        "en": "33-shotok bigha (1 bigha = 33 shotok)"
+      },
+      "katha_sqft": 718.74,
+      "katha_per_bigha": 20
+    }
+  ],
+  "chhatak_per_katha": 16
+}
