@@ -152,7 +152,7 @@ export function pricePerUnit(total, unitId, areaSqft, units) {
 }
 
 /**
- * Cost estimate from published rates (content/land/costs.json).
+ * Cost calculated from published rates (content/land/costs.json).
  * items: [{ id, label, kind:'percent'|'fixed', value }]; percent items are a share of the deed value.
  */
 export function estimateCost(deedValue, items) {

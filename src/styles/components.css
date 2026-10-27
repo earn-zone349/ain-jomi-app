@@ -233,3 +233,9 @@
 :root[data-theme='dark'] .result-big { color: var(--c-link); }
 .fact-total { border-top: 1px solid var(--c-border); padding-top: 8px; font-weight: 800; }
 select.input { appearance: auto; }
+
+/* inheritance calculator */
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.plain-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.tree { margin-inline-start: 12px; padding-inline-start: 10px; border-inline-start: 2px solid var(--c-border); }
+.tree-node { gap: 8px; }

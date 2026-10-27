@@ -19,6 +19,7 @@ const ROUTES = [
   { path: '/law/:id', load: () => import('./pages/law.js'), tab: 'laws', back: true },
   { path: '/faq', load: () => import('./pages/faq.js'), tab: 'home', back: true },
   { path: '/tools', load: () => import('./pages/tools.js'), tab: 'tools' },
+  { path: '/tools/inheritance', load: () => import('./pages/inheritance.js'), tab: 'tools', back: true },
   { path: '/tools/land', load: () => import('./pages/land.js'), tab: 'tools', back: true },
   { path: '/settings', load: () => import('./pages/settings.js'), tab: 'settings' },
   { path: '/login', load: () => import('./pages/login.js'), chrome: false },

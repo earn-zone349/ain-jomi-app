@@ -242,8 +242,8 @@ check('back online: offline bar hidden', !(await page.locator('.offline-bar').is
 // 11b. land calculator (offline, bundled data)
 await page.locator('.tab[data-tab="tools"]').click();
 await page.waitForSelector('.module-live');
-check('Tools tab: land calculator is live, others coming soon', (await page.locator('.module-live').count()) === 1 && (await page.locator('.module').count()) === 5);
-await page.locator('.module-live').click();
+check('Tools tab: land + inheritance calculators are live, others coming soon', (await page.locator('.module-live').count()) === 2 && (await page.locator('.module').count()) === 5);
+await page.locator('.module-live').first().click();
 await page.waitForSelector('.chip-active');
 check('calculator opens on the converter tab', (await page.locator('.chip-active').first().innerText()).includes('Convert'));
 await page.locator('input[aria-label="Amount"]').first().fill('১');
@@ -299,6 +299,61 @@ await page.locator('input[aria-label="Amount"]').first().fill('1');
 await page.locator('select[aria-label="Unit"]').first().selectOption('bigha');
 await page.waitForTimeout(100);
 check('33-shotok region: 1 bigha = 33 shotok', /Decimal \(shotok\)\s*33/.test((await text('.result .facts')).replace(/\s+/g, ' ')), await text('.result .facts'));
+await page.locator('.tab[data-tab="home"]').click();
+
+// 11c. inheritance calculator
+await page.locator('.tab[data-tab="tools"]').click();
+await page.locator('.module-live').nth(1).click();
+await page.waitForSelector('[data-religion]');
+check('religion list shows 4 religions', (await page.locator('[data-religion]').count()) === 4);
+check('Christian and Muslim are usable; Hindu/Buddhist are not', (await page.locator('button[data-religion]').count()) === 2 && (await page.locator('div[data-religion]').count()) === 2);
+const chooser = await text('.page');
+check('Muslim is marked not yet reviewed; Hindu/Buddhist unavailable', chooser.includes('Not yet reviewed') && chooser.includes('Not available'), chooser.slice(0, 300));
+await page.locator('button[data-religion="christian"]').click();
+await page.locator('[data-id="spouse"]').check();
+await page.locator('button', { hasText: 'Add a child' }).click();
+await page.locator('button', { hasText: 'Add a child' }).click();
+await page.locator('button', { hasText: 'Calculate' }).click();
+await page.waitForSelector('[data-id="inh-result"]');
+let facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
+check('widow + 2 children: 1/3 each, total 1', (facts.match(/1\/3/g) || []).length === 3 && facts.includes('Total 1'), facts);
+await page.locator('input[aria-label="Estate value (optional, Taka)"]').fill('1,000,000');
+await page.waitForTimeout(100);
+facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
+check('estate amount: 333333.33 per share', facts.includes('333333.33'), facts);
+// first child dead with two living children (s.40): shares 1/3 spouse, 1/3 second child, 1/6 + 1/6
+await page.locator('select[data-id="state-1"]').selectOption('dead');
+await page.locator('button', { hasText: 'Add a child of child 1' }).click();
+await page.locator('button', { hasText: 'Add a child of child 1' }).click();
+await page.waitForTimeout(100);
+facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
+check('s.40 per-stirpes: 1/3, 1/3, 1/6, 1/6', (facts.match(/1\/6/g) || []).length === 2 && (facts.match(/1\/3/g) || []).length === 2, facts);
+await page.locator('select[data-id="state-1"]').selectOption('dead');
+await shot('14-inheritance');
+// no descendants: father alive takes the kindred half
+await page.locator('.tree-node').first().locator('button', { hasText: 'Remove' }).first().click();
+await page.waitForTimeout(100);
+await page.locator('.tree-node').first().locator('button', { hasText: 'Remove' }).first().click();
+await page.waitForTimeout(100);
+await page.locator('input[data-id="spouse"]').check();
+await page.waitForTimeout(100);
+check('no relatives given: refuses until confirmed', (await text('.page')).includes('No result is given until you confirm'), await text('.page'));
+await page.locator('input[data-id="nokin"]').check();
+await page.waitForTimeout(100);
+check('confirmed no kindred: spouse takes all', (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ').includes('1'), await text('.page'));
+await page.locator('button', { hasText: 'Change religion' }).click();
+await page.waitForSelector('button[data-religion="muslim"]');
+await page.locator('button[data-religion="muslim"]').click();
+check('Muslim module shows the review warning', (await text('.page')).includes('No scholar or lawyer has reviewed these rules yet'));
+await page.locator('select[data-id="spouse-kind"]').selectOption('wives');
+await page.locator('button', { hasText: 'Add a child' }).click();
+await page.locator('button', { hasText: 'Calculate' }).click();
+await page.waitForSelector('[data-id="inh-result"]');
+facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
+check('Muslim: wife 1/8 + son 7/8', facts.includes('1/8') && facts.includes('7/8'), facts);
+await page.locator('input[data-id="other"]').check();
+await page.waitForTimeout(100);
+check('other heirs: app refuses to guess', (await text('.page')).includes('no result'), await text('.page'));
 await page.locator('.tab[data-tab="home"]').click();
 
 // 12. maintenance mode blocks the app

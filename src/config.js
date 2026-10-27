@@ -24,7 +24,7 @@ export const CONFIG = {
   // always on. Other modules need a route AND the server flag (app_settings.feature_flags) to light up.
   modules: [
     { id: 'land_calculator', icon: 'calc', route: '/tools/land', bundled: true },
-    { id: 'inheritance', icon: 'family', route: null },
+    { id: 'inheritance', icon: 'family', route: '/tools/inheritance', bundled: true },
     { id: 'gov_services', icon: 'land', route: null },
     { id: 'ai_assistant', icon: 'bot', route: null },
     { id: 'lawyers', icon: 'scale', route: null },
