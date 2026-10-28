@@ -1,0 +1,495 @@
+{
+  "_help": "সরকারি সেবার তথ্য। প্রতিটি তথ্যের সাথে সূত্র (sources) থাকতে হবে। সূত্রে নেই এমন ধাপ, ফি বা নম্বর যোগ করবেন না। scripts/build-services.mjs নিয়মগুলো যাচাই করে।",
+  "as_of": "2026-10-28",
+  "categories": [
+    {
+      "id": "land",
+      "name": {
+        "bn": "ভূমি সেবা",
+        "en": "Land services"
+      }
+    },
+    {
+      "id": "legal_aid",
+      "name": {
+        "bn": "আইনি সহায়তা",
+        "en": "Legal aid"
+      }
+    },
+    {
+      "id": "portals",
+      "name": {
+        "bn": "সরকারি পোর্টাল",
+        "en": "Official portals"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "fee_page",
+      "kind": "official",
+      "title": {
+        "bn": "ভূমি মন্ত্রণালয়: ভূমিসেবার নির্ধারিত ফি (land.gov.bd)",
+        "en": "Ministry of Land: fixed fees for land services (land.gov.bd)"
+      },
+      "url": "https://land.gov.bd/vumisheba-fee?lang=bn",
+      "published": "",
+      "accessed": "2026-10-28"
+    },
+    {
+      "id": "bdnews_parcha",
+      "kind": "news",
+      "title": {
+        "bn": "bdnews24: অনলাইনে খতিয়ান/পর্চা পাওয়ার নিয়ম",
+        "en": "bdnews24: how to get a khatian/parcha online"
+      },
+      "url": "https://bangla.bdnews24.com/Jenerakun/4d7a903c90f4",
+      "published": "2025-11-18",
+      "accessed": "2026-10-28"
+    },
+    {
+      "id": "un_emutation",
+      "kind": "international",
+      "title": {
+        "bn": "জাতিসংঘ জনসেবা পুরস্কার ২০২০: ই-মিউটেশন",
+        "en": "UN Public Service Awards 2020: e-Mutation"
+      },
+      "url": "https://publicadministration.un.org/unpsa/database/Winners/2020-winners/e-mutation",
+      "published": "2020",
+      "accessed": "2026-10-28"
+    },
+    {
+      "id": "pa_ldtax",
+      "kind": "news",
+      "title": {
+        "bn": "প্রথম আলো: পয়লা বৈশাখ থেকে অনলাইনে ভূমি উন্নয়ন কর",
+        "en": "Prothom Alo: land development tax online from Pohela Boishakh"
+      },
+      "url": "https://www.prothomalo.com/technology/wubseu7vow",
+      "published": "2023-04-13",
+      "accessed": "2026-10-28"
+    },
+    {
+      "id": "undp_16430",
+      "kind": "international",
+      "title": {
+        "bn": "UNDP: ১৬৪৩০ হটলাইনে আইনি সহায়তা",
+        "en": "UNDP: legal aid through the 16430 hotline"
+      },
+      "url": "https://www.undp.org/bangladesh/stories/legal-aid-made-easy-during-lockdown-through-16430-hotline",
+      "published": "2020-04-29",
+      "accessed": "2026-10-28"
+    },
+    {
+      "id": "wiki_nlaso",
+      "kind": "reference",
+      "title": {
+        "bn": "উইকিপিডিয়া: জাতীয় আইনগত সহায়তা প্রদান সংস্থা (NLASO)",
+        "en": "Wikipedia: National Legal Aid Services Organization (NLASO)"
+      },
+      "url": "https://en.wikipedia.org/wiki/National_Legal_Aid_Services_Organization",
+      "published": "",
+      "accessed": "2026-10-28"
+    }
+  ],
+  "services": [
+    {
+      "id": "land_record_online",
+      "category": "land",
+      "status": "published",
+      "last_verified": "2026-10-28",
+      "name": {
+        "bn": "খতিয়ান / পর্চা অনলাইনে",
+        "en": "Khatian / parcha online"
+      },
+      "summary": {
+        "bn": "ভূমি অফিসে না গিয়ে অনলাইনে খতিয়ান (পর্চা) আবেদন ও ডাউনলোড। এই ফি ভূমি মন্ত্রণালয়ের সরকারি পাতা থেকে নেওয়া।",
+        "en": "Apply for and download a khatian (parcha) online without visiting a land office. The fees come from the Ministry of Land's official page."
+      },
+      "links": [
+        {
+          "label": {
+            "bn": "ডিজিটাল ভূমি রেকর্ড (dlrms)",
+            "en": "Digital land records (dlrms)"
+          },
+          "url": "https://dlrms.land.gov.bd",
+          "source": "bdnews_parcha"
+        },
+        {
+          "label": {
+            "bn": "ভূমি মন্ত্রণালয় সেবা পোর্টাল",
+            "en": "Ministry of Land service portal"
+          },
+          "url": "https://land.gov.bd",
+          "source": "fee_page"
+        }
+      ],
+      "needs": {
+        "items": [
+          {
+            "bn": "জাতীয় পরিচয়পত্র নম্বর",
+            "en": "National ID number"
+          },
+          {
+            "bn": "জন্ম তারিখ",
+            "en": "Date of birth"
+          },
+          {
+            "bn": "মোবাইল নম্বর",
+            "en": "Mobile number"
+          }
+        ],
+        "source": "bdnews_parcha"
+      },
+      "steps": {
+        "items": [
+          {
+            "bn": "খতিয়ানের ধরন বেছে নিন: জরিপ (সার্ভে) বা নামজারি।",
+            "en": "Choose the record type: survey or mutation (namjari)."
+          },
+          {
+            "bn": "বিভাগ, জেলা ও উপজেলা বেছে নিন।",
+            "en": "Select the division, district and upazila."
+          },
+          {
+            "bn": "রেকর্ডের ধরন ও মৌজা বেছে নিন।",
+            "en": "Pick the record type and the mouza."
+          },
+          {
+            "bn": "খতিয়ান নম্বর, মালিকের নাম বা দাগ নম্বর দিয়ে খুঁজুন।",
+            "en": "Search by khatian number, owner name or plot (dag) number."
+          },
+          {
+            "bn": "মিলে যাওয়া রেকর্ড খুলে আবেদন শুরু করুন।",
+            "en": "Open the matching record and start the application."
+          },
+          {
+            "bn": "জাতীয় পরিচয়পত্র নম্বর, জন্ম তারিখ ও মোবাইল নম্বর দিন।",
+            "en": "Enter your NID number, date of birth and mobile number."
+          },
+          {
+            "bn": "যাচাই করুন; নাম ও ঠিকানা নিজে থেকে আসার কথা।",
+            "en": "Verify; your name and address should fill in on their own."
+          },
+          {
+            "bn": "কপির ধরন বেছে ফি দিন।",
+            "en": "Choose the copy type and pay the fee."
+          },
+          {
+            "bn": "পরিশোধের পর PDF ডাউনলোড করুন, দরকারে প্রিন্ট করুন।",
+            "en": "After payment, download the PDF and print it if you need to."
+          }
+        ],
+        "source": "bdnews_parcha"
+      },
+      "fees": [
+        {
+          "label": {
+            "bn": "অনলাইনে আবেদনে প্রাপ্ত খতিয়ান",
+            "en": "Khatian obtained through online application"
+          },
+          "amount": 100,
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "সার্টিফায়েড খতিয়ান আবেদন (ডাকযোগে নিলে ১০০ + ৪০ ডাকমাশুল)",
+            "en": "Certified khatian application (by post: 100 + 40 postage)"
+          },
+          "amount": 140,
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "খতিয়ান সংশোধনের আবেদন",
+            "en": "Khatian correction application"
+          },
+          "amount": 20,
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "মৌজা ম্যাপ (৫২০ + ১১০ ডাকমাশুল, দেশের ভেতরে)",
+            "en": "Mouza map (520 + 110 postage, within the country)"
+          },
+          "amount": 630,
+          "source": "fee_page"
+        }
+      ],
+      "notes": [
+        {
+          "bn": "অনলাইনে না পেলে উপজেলা সেটেলমেন্ট অফিস বা জেলা প্রশাসকের রেকর্ড রুমে ফি দিয়ে সার্টিফায়েড কপি নেওয়া যায় (bdnews24 অনুযায়ী)।",
+          "en": "If you cannot get it online, a certified copy can be taken against a fee at the upazila settlement office or the district administrator's record room (per bdnews24)."
+        }
+      ],
+      "sources": [
+        "fee_page",
+        "bdnews_parcha"
+      ]
+    },
+    {
+      "id": "mutation",
+      "category": "land",
+      "status": "published",
+      "last_verified": "2026-10-28",
+      "name": {
+        "bn": "নামজারি (মিউটেশন)",
+        "en": "Mutation (namjari)"
+      },
+      "summary": {
+        "bn": "জমির মালিকানা বদলের (উত্তরাধিকার, বিক্রি, হস্তান্তর) রেকর্ড বদলানো। ই-নামজারিতে আবেদন অনলাইনে জমা ও অবস্থা দেখা যায়।",
+        "en": "Updating the land record after a change of ownership (inheritance, sale, transfer). With e-mutation you submit the application online and follow its progress."
+      },
+      "links": [
+        {
+          "label": {
+            "bn": "ই-নামজারি পাতা (ভূমি মন্ত্রণালয়)",
+            "en": "e-Mutation page (Ministry of Land)"
+          },
+          "url": "https://land.gov.bd/pages/mutation",
+          "source": "un_emutation"
+        }
+      ],
+      "fees": [
+        {
+          "label": {
+            "bn": "আবেদনের কোর্ট ফি",
+            "en": "Application court fee"
+          },
+          "amount": 20,
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "আবেদনের নোটিশ জারি ফি",
+            "en": "Application notice issuance fee"
+          },
+          "amount": 50,
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "ডিসিআর ফি",
+            "en": "DCR fee"
+          },
+          "amount": 1100,
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "রিভিউ আবেদনের কোর্ট ফি ও নোটিশ জারি ফি",
+            "en": "Review application court fee and notice issuance fee"
+          },
+          "amount": 70,
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "রিভিউয়ের ডিসিআর ফি",
+            "en": "Review DCR fee"
+          },
+          "amount": 1100,
+          "source": "fee_page"
+        }
+      ],
+      "notes": [
+        {
+          "bn": "ধাপ ও প্রয়োজনীয় কাগজ এখানে ইচ্ছা করে দেওয়া হয়নি, কারণ সরকারি সূত্র থেকে তা এখনো মেলানো হয়নি। আবেদনের আগে ভূমি মন্ত্রণালয়ের পাতা দেখুন।",
+          "en": "Steps and required documents are left out on purpose: they have not been checked against an official source yet. Read the Ministry of Land page before you apply."
+        }
+      ],
+      "sources": [
+        "fee_page",
+        "un_emutation"
+      ]
+    },
+    {
+      "id": "land_development_tax",
+      "category": "land",
+      "status": "published",
+      "last_verified": "2026-10-28",
+      "name": {
+        "bn": "ভূমি উন্নয়ন কর (খাজনা)",
+        "en": "Land development tax (khajna)"
+      },
+      "summary": {
+        "bn": "২০২৩ সালের প্রথম আলোর প্রতিবেদন অনুযায়ী ১৪৩০ বঙ্গাব্দের পয়লা বৈশাখ থেকে ভূমি উন্নয়ন কর অনলাইনে দিতে হয়। এই তথ্য ২০২৩-এর, তাই চলমান নিয়ম সরকারি সাইটে মিলিয়ে নিন।",
+        "en": "According to a 2023 Prothom Alo report, land development tax is paid online from Pohela Boishakh 1430. This is 2023 information, so check the current rule on the official site."
+      },
+      "links": [
+        {
+          "label": {
+            "bn": "ভূমি উন্নয়ন কর পোর্টাল",
+            "en": "Land development tax portal"
+          },
+          "url": "https://ldtax.gov.bd",
+          "source": "pa_ldtax"
+        },
+        {
+          "label": {
+            "bn": "ভূমি মন্ত্রণালয় সেবা পোর্টাল",
+            "en": "Ministry of Land service portal"
+          },
+          "url": "https://land.gov.bd",
+          "source": "pa_ldtax"
+        }
+      ],
+      "needs": {
+        "items": [
+          {
+            "bn": "জাতীয় পরিচয়পত্র নম্বর",
+            "en": "National ID number"
+          },
+          {
+            "bn": "জন্ম তারিখ",
+            "en": "Date of birth"
+          },
+          {
+            "bn": "মোবাইল নম্বর",
+            "en": "Mobile number"
+          }
+        ],
+        "source": "pa_ldtax"
+      },
+      "steps": {
+        "items": [
+          {
+            "bn": "পোর্টালে একবার নিবন্ধন করুন (জাতীয় পরিচয়পত্র, জন্ম তারিখ, মোবাইল নম্বর দিয়ে)।",
+            "en": "Register once on the portal (with NID, date of birth and mobile number)."
+          },
+          {
+            "bn": "কর পরিশোধ করুন; বিকাশ, নগদের মতো মোবাইল ওয়ালেট ব্যবহার করা যায়।",
+            "en": "Pay the tax; mobile wallets such as bKash and Nagad can be used."
+          },
+          {
+            "bn": "কিউআর কোডযুক্ত দাখিলা (রসিদ) পোর্টাল থেকে নামান।",
+            "en": "Download the receipt (dakhila) with a QR code from the portal."
+          }
+        ],
+        "source": "pa_ldtax"
+      },
+      "contacts": [
+        {
+          "label": {
+            "bn": "ভূমি মন্ত্রণালয় কল সেন্টার",
+            "en": "Ministry of Land call centre"
+          },
+          "phone": "333",
+          "source": "pa_ldtax"
+        },
+        {
+          "label": {
+            "bn": "ভূমি মন্ত্রণালয় কল সেন্টার",
+            "en": "Ministry of Land call centre"
+          },
+          "phone": "16122",
+          "source": "pa_ldtax"
+        }
+      ],
+      "notes": [
+        {
+          "bn": "প্রতিবেদনে ইউনিয়ন ডিজিটাল সেন্টারে জাতীয় পরিচয়পত্র, জন্ম তারিখ ও খতিয়ান নম্বর দিয়েও নিবন্ধনের কথা আছে।",
+          "en": "The report also mentions registering at a union digital centre with NID, date of birth and khatian number."
+        }
+      ],
+      "sources": [
+        "pa_ldtax"
+      ]
+    },
+    {
+      "id": "legal_aid",
+      "category": "legal_aid",
+      "status": "published",
+      "last_verified": "2026-10-28",
+      "name": {
+        "bn": "সরকারি আইনি সহায়তা (NLASO ও ১৬৪৩০)",
+        "en": "Government legal aid (NLASO and 16430)"
+      },
+      "summary": {
+        "bn": "জাতীয় আইনগত সহায়তা প্রদান সংস্থা (NLASO) আইন, বিচার ও সংসদ বিষয়ক মন্ত্রণালয়ের অধীন সংস্থা। দরিদ্রদের আইনি সহায়তা দেয় এবং সবাইকে আইনি পরামর্শ দেয়। ১৬৪৩০ হটলাইন NLASO ও UNDP-র যৌথ উদ্যোগ।",
+        "en": "The National Legal Aid Services Organization (NLASO) is a statutory body under the Ministry of Law, Justice and Parliamentary Affairs. It provides legal aid to poor people and legal advice to everyone. The 16430 hotline is a joint initiative of NLASO and UNDP."
+      },
+      "links": [
+        {
+          "label": {
+            "bn": "NLASO ওয়েবসাইট",
+            "en": "NLASO website"
+          },
+          "url": "https://nlaso.gov.bd",
+          "source": "wiki_nlaso"
+        }
+      ],
+      "contacts": [
+        {
+          "label": {
+            "bn": "জাতীয় আইনি সহায়তা হটলাইন (২৪ ঘণ্টা, সব নাগরিকের জন্য)",
+            "en": "National legal aid hotline (24 hours, for all citizens)"
+          },
+          "phone": "16430",
+          "source": "undp_16430"
+        }
+      ],
+      "notes": [
+        {
+          "bn": "এটি বিনা মূল্যে কি না, উৎসগুলোতে বলা নেই, তাই এখানে দাবি করা হচ্ছে না। ১৬৪৩০ সম্পর্কে UNDP-র তথ্য ২০২০ সালের।",
+          "en": "The sources do not say whether the hotline is free, so no such claim is made here. The UNDP information on 16430 dates from 2020."
+        }
+      ],
+      "sources": [
+        "undp_16430",
+        "wiki_nlaso"
+      ]
+    },
+    {
+      "id": "official_portals",
+      "category": "portals",
+      "status": "published",
+      "last_verified": "2026-10-28",
+      "name": {
+        "bn": "সরকারি ভূমি পোর্টাল ও অভিযোগ",
+        "en": "Official land portals and complaints"
+      },
+      "summary": {
+        "bn": "ভূমি মন্ত্রণালয়ের সরকারি সেবা-পাতায় দেওয়া লিংক। ভূমিসেবা নিয়ে অভিযোগ জানানোর ব্যবস্থাও আছে।",
+        "en": "Links given on the Ministry of Land's official service page, including a grievance system for land services."
+      },
+      "links": [
+        {
+          "label": {
+            "bn": "ভূমি সেবা (land.gov.bd)",
+            "en": "Land services (land.gov.bd)"
+          },
+          "url": "https://land.gov.bd",
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "ভূমি মন্ত্রণালয় (minland.gov.bd)",
+            "en": "Ministry of Land (minland.gov.bd)"
+          },
+          "url": "https://minland.gov.bd",
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "অভিযোগ প্রতিকার ব্যবস্থা",
+            "en": "Grievance redress system"
+          },
+          "url": "https://portal-citizen.land.gov.bd/login",
+          "source": "fee_page"
+        },
+        {
+          "label": {
+            "bn": "জাতীয় তথ্য বাতায়ন",
+            "en": "National Information Portal"
+          },
+          "url": "https://bangladesh.gov.bd",
+          "source": "fee_page"
+        }
+      ],
+      "sources": [
+        "fee_page"
+      ]
+    }
+  ]
+}

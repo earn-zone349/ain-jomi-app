@@ -10,6 +10,7 @@ import { execFileSync } from 'node:child_process';
 // Build the law catalogue from the fixture JSON files, exactly like the real build does.
 execFileSync('node', ['scripts/build-laws.mjs'], { env: { ...process.env, CONTENT_DIR: 'tests/fixtures/content', DATA_OUT: 'tests/harness/data' }, stdio: 'inherit' });
 execFileSync('node', ['scripts/build-land.mjs'], { env: { ...process.env, LAND_OUT: 'tests/harness/data/land' }, stdio: 'inherit' });
+execFileSync('node', ['scripts/build-services.mjs'], { env: { ...process.env, SERVICES_OUT: 'tests/harness/data/services' }, stdio: 'inherit' });
 
 // ESM ignores NODE_PATH, so resolve Playwright explicitly (local install or a global one).
 const require = createRequire(import.meta.url);
@@ -242,7 +243,7 @@ check('back online: offline bar hidden', !(await page.locator('.offline-bar').is
 // 11b. land calculator (offline, bundled data)
 await page.locator('.tab[data-tab="tools"]').click();
 await page.waitForSelector('.module-live');
-check('Tools tab: land + inheritance calculators are live, others coming soon', (await page.locator('.module-live').count()) === 2 && (await page.locator('.module').count()) === 5);
+check('Tools tab: land, inheritance and service guides are live, others coming soon', (await page.locator('.module-live').count()) === 3 && (await page.locator('.module').count()) === 5);
 await page.locator('.module-live').first().click();
 await page.waitForSelector('.chip-active');
 check('calculator opens on the converter tab', (await page.locator('.chip-active').first().innerText()).includes('Convert'));
@@ -354,6 +355,25 @@ check('Muslim: wife 1/8 + son 7/8', facts.includes('1/8') && facts.includes('7/8
 await page.locator('input[data-id="other"]').check();
 await page.waitForTimeout(100);
 check('other heirs: app refuses to guess', (await text('.page')).includes('no result'), await text('.page'));
+await page.locator('.tab[data-tab="home"]').click();
+
+// 11d. government service guides (offline, bundled data)
+await page.locator('.tab[data-tab="tools"]').click();
+await page.locator('.module-live').nth(2).click();
+await page.waitForSelector('[data-service]');
+check('service guides: 5 entries listed', (await page.locator('[data-service]').count()) === 5);
+check('intro says every item has a source and date', (await text('.page')).includes('source and the date it was checked'));
+await page.locator('[data-service="land_record_online"] summary').click();
+const rec = (await text('[data-service="land_record_online"]')).replace(/\s+/g, ' ');
+check('khatian guide shows official fees 100 / 140 / 20 / 630', ['100', '140', '20', '630'].every((n) => rec.includes(`৳ ${n}`)), rec.slice(0, 400));
+check('khatian guide shows official and news source badges', rec.includes('Official') && rec.includes('News'));
+check('every external link is https and opens in a new tab', await page.evaluate(() => [...document.querySelectorAll('a.link[target="_blank"]')].every((a) => a.href.startsWith('https://') && a.rel.includes('noopener'))));
+check('dlrms official link present', (await page.locator('a[href="https://dlrms.land.gov.bd"]').count()) === 1);
+await page.locator('.chip[data-cat="legal_aid"]').click();
+check('category filter shows only legal aid', (await page.locator('[data-service]').count()) === 1);
+await page.locator('[data-service="legal_aid"] summary').click();
+check('legal aid shows 16430 as a phone link and does not claim it is free', (await page.locator('a[href="tel:16430"]').count()) === 1 && !/free/i.test((await text('[data-service="legal_aid"]')).replace(/not say whether the hotline is free/, '')));
+await shot('15-services');
 await page.locator('.tab[data-tab="home"]').click();
 
 // 12. maintenance mode blocks the app

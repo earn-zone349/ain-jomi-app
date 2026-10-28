@@ -5,14 +5,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/build-laws.mjs && node scripts/build-land.mjs && vite",
+    "dev": "node scripts/build-laws.mjs && node scripts/build-land.mjs && node scripts/build-services.mjs && vite",
     "legal": "node scripts/build-legal.mjs",
     "laws": "node scripts/build-laws.mjs",
     "land": "node scripts/build-land.mjs",
+    "services": "node scripts/build-services.mjs",
     "laws:import": "node scripts/text-to-law.mjs",
     "check": "node scripts/check-source.mjs",
     "test": "node --test tests/*.test.js",
-    "build": "node scripts/build-legal.mjs && node scripts/build-laws.mjs && node scripts/build-land.mjs && vite build",
+    "build": "node scripts/build-legal.mjs && node scripts/build-laws.mjs && node scripts/build-land.mjs && node scripts/build-services.mjs && vite build",
     "build:web": "node scripts/build-legal.mjs && vite build --config vite.web.config.js",
     "preview": "vite preview",
     "cap:sync": "cap sync android"
