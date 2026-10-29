@@ -12,7 +12,7 @@ import { parseBlocks } from '../src/lib/text.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SLUGS = ['disclaimer', 'terms', 'privacy'];
-const DEFAULT_DATE = '2026-10-22';
+const DEFAULT_DATE = '2026-10-29';
 
 const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const BN_MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];

@@ -27,6 +27,11 @@ const db = {
   },
   reports: [{ id: 'r0', user_id: 'u-1', target_type: 'law', target_id: 'l1', message: 'Penalty text looks outdated', status: 'open', created_at: '2026-10-05T00:00:00Z' }],
   error_logs: [],
+  lawyers: [
+    { id: 'lw1', user_id: 'u-L1', full_name: 'Ayesha Rahman', enrollment_no: 'DBA-1234', enrollment_year: 2015, bar_association: 'Dhaka Bar', courts: ['lower_courts', 'high_court_division'], practice_areas: ['land-law', 'family-law'], district: 'dhaka', office_address: '12 Court Road, Dhaka', phone: '01700000001', email: 'ayesha@example.com', qualifications: 'LL.B, LL.M', consent_public: true, status: 'verified', verified_at: '2026-10-10T00:00:00Z', review_note: null },
+    { id: 'lw2', user_id: 'u-L2', full_name: 'Bashir Ahmed', enrollment_no: '5678', enrollment_year: 2010, bar_association: 'Sylhet Bar', courts: ['lower_courts'], practice_areas: ['criminal-law'], district: 'sylhet', office_address: '5 Bar Lane, Sylhet', phone: '01800000002', email: null, qualifications: null, consent_public: true, status: 'verified', verified_at: '2026-10-11T00:00:00Z', review_note: null },
+    { id: 'lw3', user_id: 'u-L3', full_name: 'Pending Person', enrollment_no: '999', enrollment_year: null, bar_association: 'Dhaka Bar', courts: ['lower_courts'], practice_areas: ['land-law'], district: 'dhaka', office_address: '1 Hidden Road', phone: '01900000003', email: null, qualifications: null, consent_public: true, status: 'pending', verified_at: null, review_note: null },
+  ],
   profiles: {
     'u-1': { id: 'u-1', full_name: 'Rakib', role: 'user', preferred_lang: 'bn' },
     'u-admin': { id: 'u-admin', full_name: 'Admin', role: 'admin', preferred_lang: 'bn' },
@@ -72,7 +77,7 @@ class Query {
     this.head = false;
     this.count = false;
   }
-  select(_cols, opts = {}) { this.head = Boolean(opts.head); this.count = Boolean(opts.count); return this; }
+  select(_cols, opts = {}) { this.cols = typeof _cols === 'string' ? _cols : '*'; this.head = Boolean(opts.head); this.count = Boolean(opts.count); return this; }
   eq(col, val) { this.preds.push((r) => r[col] === val); return this; }
   gte(col, val) { this.preds.push((r) => Date.parse(r[col]) >= Date.parse(val)); return this; }
   order(col, { ascending = true } = {}) { this.orders.push([col, ascending]); return this; }
@@ -135,6 +140,45 @@ class Query {
         return { data: null, error: null };
       }
       return this.finish(db.reports.filter((r) => (isStaff() || r.user_id === db.session?.user.id) && this.preds.every((f) => f(r))).map((r) => ({ ...r })));
+    }
+
+    if (t === 'lawyers_public') {
+      const contact = ['phone', 'email', 'office_address'];
+      if (!db.session && contact.some((c) => (this.cols || '*').split(',').map((x) => x.trim()).includes(c) || this.cols === '*')) return { data: null, error: { code: '42501', message: 'permission denied for view lawyers_public' } };
+      const rows = db.lawyers.filter((r) => r.status === 'verified' && this.preds.every((f) => f(r))).map((r) => {
+        const o = { ...r };
+        delete o.status; delete o.review_note; delete o.user_id; delete o.consent_public;
+        if (!db.session) contact.forEach((c) => delete o[c]);
+        return o;
+      });
+      return this.finish(rows);
+    }
+
+    if (t === 'lawyer_profiles') {
+      if (!db.session) return denied('permission denied for table lawyer_profiles');
+      const me = db.session.user.id;
+      if (this.op === 'insert') {
+        if (db.lawyers.some((r) => r.user_id === me)) return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
+        const row = { ...[].concat(this.payload)[0], id: `lw${db.lawyers.length + 1}`, user_id: me, status: 'pending', verified_at: null, review_note: null };
+        db.lawyers.push(row);
+        return { data: null, error: null };
+      }
+      const mine = db.lawyers.filter((r) => (r.user_id === me || isAdmin()) && this.preds.every((f) => f(r)));
+      if (this.op === 'update') {
+        for (const r of mine) {
+          const edit = { ...this.payload };
+          if (!isAdmin()) { delete edit.status; delete edit.review_note; delete edit.verified_at; }
+          const changed = Object.keys(edit).some((k) => JSON.stringify(edit[k]) !== JSON.stringify(r[k]));
+          Object.assign(r, edit);
+          if (!isAdmin() && changed && (r.status === 'verified' || r.status === 'rejected')) Object.assign(r, { status: 'pending', verified_at: null, review_note: null });
+        }
+        return { data: null, error: null };
+      }
+      if (this.op === 'delete') {
+        db.lawyers = db.lawyers.filter((r) => !mine.includes(r));
+        return { data: null, error: null };
+      }
+      return this.finish(mine.map((r) => ({ ...r })));
     }
 
     if (t === 'audit_log') {

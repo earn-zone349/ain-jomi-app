@@ -376,6 +376,86 @@ check('legal aid shows 16430 as a phone link and does not claim it is free', (aw
 await shot('15-services');
 await page.locator('.tab[data-tab="home"]').click();
 
+// 11e. lawyer directory (flag-gated, no contact details for guests)
+await page.locator('.tab[data-tab="tools"]').click();
+check('lawyers card is not live while the flag is off', (await page.locator('.module-live', { hasText: 'Verified lawyers' }).count()) === 0);
+await page.evaluate(() => { __fake.setSetting('feature_flags', { lawyers: true }); window.dispatchEvent(new Event('online')); });
+await page.waitForTimeout(500);
+await page.evaluate(() => { location.hash = '#/tools/lawyers'; });
+await page.waitForSelector('[data-lawyer]');
+check('lists the 2 verified lawyers, not the pending one', (await page.locator('[data-lawyer]').count()) === 2 && !(await text('.page')).includes('Pending Person'));
+const names = await page.locator('[data-lawyer] .sec-heading').allInnerTexts();
+check('list is alphabetical', names.join('|') === 'Ayesha Rahman|Bashir Ahmed', names.join('|'));
+await page.locator('[data-id="lawyer-district"]').selectOption('sylhet');
+check('district filter works', (await page.locator('[data-lawyer]').count()) === 1 && (await text('[data-lawyer]')).includes('Bashir'));
+await page.locator('[data-id="lawyer-district"]').selectOption('');
+await page.locator('[data-id="lawyer-q"]').fill('DBA-1234');
+check('search by enrolment number works', (await page.locator('[data-lawyer]').count()) === 1 && (await text('[data-lawyer]')).includes('Ayesha'));
+await page.locator('[data-id="lawyer-q"]').fill('nobody-here');
+check('no match shows a message', (await text('.page')).includes('Nobody matches'));
+await page.locator('[data-id="lawyer-q"]').fill('');
+await page.locator('[data-lawyer="lw1"] summary').click();
+check('guest sees no contact details, only a login prompt', (await page.locator('[data-lawyer="lw1"] [data-id="contact"]').count()) === 0 && (await text('[data-lawyer="lw1"]')).includes('Log in to see') && !(await text('[data-lawyer="lw1"]')).includes('01700000001'));
+await page.locator('[data-lawyer="lw1"] .btn-primary', { hasText: 'Log in' }).click();
+await page.waitForSelector('#email');
+await page.fill('#email', 'rakib@example.com');
+await page.fill('#password', 'secret123');
+await page.locator('.btn-primary', { hasText: 'Log in' }).click();
+await page.waitForSelector('[data-lawyer]');
+await page.locator('[data-lawyer="lw1"] summary').click();
+check('signed-in user sees contact details', (await text('[data-lawyer="lw1"] [data-id="contact"]')).includes('01700000001'));
+check('phone is a tel: link', (await page.locator('[data-lawyer="lw1"] a[href="tel:01700000001"]').count()) === 1);
+// report
+await page.locator('[data-lawyer="lw1"] .btn', { hasText: 'Report this listing' }).click();
+await page.waitForSelector('.dialog textarea');
+await page.locator('.dialog .btn-primary').click();
+check('short lawyer report rejected', (await text('.dialog .field-error')).includes('at least 5'));
+await page.locator('.dialog textarea').fill('Enrolment number does not match');
+await page.locator('.dialog .btn-primary').click();
+await page.waitForSelector('.toast');
+check('lawyer report stored with target_type lawyer', await page.evaluate(() => { const r = __fake.db.reports.at(-1); return r.target_type === 'lawyer' && r.target_id === 'lw1'; }));
+await shot('16-lawyers');
+// apply
+await page.evaluate(() => { location.hash = '#/tools/lawyers/apply'; });
+await page.waitForSelector('[data-id="apply-form"]');
+await page.locator('[data-id="apply-form"] button[type="submit"]').click();
+check('empty application is refused with field errors', (await page.locator('[data-id="apply-form"] .field-error:not([hidden])').count()) >= 4);
+await page.fill('#ap-name', 'Rakib Test');
+await page.fill('#ap-enrol', 'DBA-777');
+await page.fill('#ap-bar', 'Dhaka Bar');
+await page.locator('input[name="court"]').first().check();
+await page.locator('input[name="area"]').first().check();
+await page.selectOption('#ap-district', 'dhaka');
+await page.fill('#ap-address', '3 Test Road, Dhaka');
+await page.fill('#ap-phone', '01711111111');
+await page.locator('[data-id="apply-form"] button[type="submit"]').click();
+check('consent is required', (await text('[data-id="apply-form"]')).includes('This is required') && (await page.evaluate(() => __fake.db.lawyers.length)) === 3);
+await page.locator('#ap-consent').check();
+await page.locator('[data-id="apply-form"] button[type="submit"]').click();
+await page.waitForSelector('[data-id="apply-status"]');
+check('application is saved as pending', (await text('[data-id="apply-status"]')).includes('Waiting for check') && (await page.evaluate(() => __fake.db.lawyers.at(-1).status)) === 'pending');
+await page.evaluate(() => { location.hash = '#/tools/lawyers'; });
+await page.waitForSelector('[data-lawyer]');
+check('pending application is not public', (await page.locator('[data-lawyer]').count()) === 2 && !(await text('.page')).includes('Rakib Test'));
+// withdraw
+await page.evaluate(() => { location.hash = '#/tools/lawyers/apply'; });
+await page.waitForSelector('[data-id="apply-status"]');
+await page.locator('.btn', { hasText: 'Withdraw application' }).click();
+await page.waitForSelector('.dialog');
+await page.locator('.dialog .btn', { hasText: 'Withdraw application' }).click();
+await page.waitForFunction(() => !document.querySelector('.overlay'));
+await page.waitForTimeout(300);
+check('withdrawing deletes the application', (await page.evaluate(() => __fake.db.lawyers.length)) === 3);
+// flag off again
+await page.evaluate(() => { __fake.setSetting('feature_flags', { lawyers: false }); window.dispatchEvent(new Event('online')); });
+await page.waitForTimeout(500);
+await page.evaluate(() => { location.hash = '#/tools'; });
+await page.waitForTimeout(200);
+await page.evaluate(() => { location.hash = '#/tools/lawyers'; });
+await page.waitForSelector('.state');
+check('flag off shows "not open yet"', (await text('.page')).includes('not open yet'));
+await page.locator('.tab[data-tab="home"]').click();
+
 // 12. maintenance mode blocks the app
 await page.evaluate(() => __fake.setSetting('maintenance_mode', { enabled: true, message_bn: '', message_en: 'Back soon' }));
 await page.evaluate(() => window.dispatchEvent(new Event('online')));

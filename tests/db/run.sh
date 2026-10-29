@@ -15,3 +15,7 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/schema.sql >/dev/null 2>&1
 echo "schema applied twice: OK"
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/seed_legal.sql
 psql -d "$DB" -f behaviour.sql
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase5_lawyers.sql >/dev/null
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase5_lawyers.sql >/dev/null
+echo "phase5 applied twice: OK"
+psql -d "$DB" -f lawyers.sql

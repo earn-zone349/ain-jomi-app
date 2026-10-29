@@ -9,6 +9,7 @@ Effective: {{EFFECTIVE_DATE}}
 - Account data, only if you create an account: your email address, an optional name, and your password (stored only in hashed form by our authentication provider).
 - Settings on your device: language, theme, text size and similar choices. These stay on your device.
 - Reports you send: the text you write and the item you reported, linked to your account.
+- Lawyer listing application, only if you are an advocate and apply to be listed: your name, enrolment number, year, Bar association, courts, areas of law, district, office address, phone number, optional email and qualifications, and your consent. Only after an admin has verified it are your name, enrolment number, courts, areas, district and Bar association shown to everyone; your phone, email and office address are shown only to logged-in users. Until then, and after you withdraw, nothing is public.
 - Technical error reports: when the app hits an error it may send the error message, app version and device platform. These reports do not include your name, email or the content you read.
 
 We do not collect your location, contacts, photos or messages. We do not use advertising trackers.
@@ -25,6 +26,7 @@ Account data is kept until you delete your account. Error reports are deleted af
 # 6. Your choices and rights
 - You can use most of the app without an account.
 - You can delete your account and its data at any time in Settings, under Account.
+- If you applied to be listed as a lawyer, you can change or withdraw your application at any time in the app; withdrawing deletes it and removes the listing.
 - You can clear the offline data on your device in Settings.
 - You can ask us to correct or remove your data by writing to {{SUPPORT_EMAIL}}.
 

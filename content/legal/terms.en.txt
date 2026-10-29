@@ -23,6 +23,8 @@ The text of laws is public. The explanations, translations, design, software and
 # 7. Services from others
 Links to government websites and other services are provided for convenience. We do not control them and are not responsible for their content or availability.
 
+The lawyer directory lists advocates whose enrolment details an admin has checked by hand. A listing is not an endorsement or recommendation by us or by the Bar Council, and we cannot guarantee that an advocate's details are current. The app takes no fee or commission, is not a party to any arrangement between you and an advocate, and gives no legal service. Advocates who apply must give accurate details, must not use the listing for advertising or solicitation, and agree that we may suspend or remove a listing that breaks these terms or the rules of their profession.
+
 # 8. Limitation of liability
 To the extent allowed by law, {{APP_NAME}} and its team are not liable for any loss caused by relying on the information or tools in the app. Nothing in these terms limits any right you have under the laws of Bangladesh that cannot be limited.
 

@@ -124,6 +124,7 @@ async function viewDashboard() {
     ['Notices published', count('notices', (q) => q.eq('status', 'published')), '#/t/notices'],
     ['Open reports', count('reports', (q) => q.eq('status', 'open')), '#/reports'],
   ];
+  if (isAdmin()) items.push(['Lawyers awaiting check', count('lawyer_profiles', (q) => q.eq('status', 'pending')), '#/lawyers']);
   if (isAdmin()) items.push(['Errors (7 days)', count('error_logs', (q) => q.gte('created_at', since)), '#/errors']);
   for (const [label, p, href] of items) {
     const num = h('strong', null, '…');
@@ -294,6 +295,64 @@ async function viewReports(query) {
       actions.appendChild(btn('Resolved / সমাধান', { variant: 'primary', onClick: setStatus('resolved') }));
       actions.appendChild(btn('Reject', { onClick: setStatus('rejected') }));
     }
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  }
+  return wrap;
+}
+
+const LAWYER_STATUSES = ['pending', 'verified', 'rejected', 'suspended'];
+
+async function viewLawyers(query) {
+  if (!isAdmin()) return notice('Admins only.', 'error');
+  const wrap = h('div', { class: 'stack' });
+  const status = LAWYER_STATUSES.includes(query.get('status')) ? query.get('status') : 'pending';
+  const sel = h('select', { class: 'input', 'aria-label': 'Status filter', onchange: () => go(`/lawyers?status=${sel.value}`) }, LAWYER_STATUSES.map((s) => h('option', { value: s }, s)));
+  sel.value = status;
+  wrap.appendChild(h('div', { class: 'adm-head' }, h('h2', null, 'Lawyers · আইনজীবী'), sel));
+  wrap.appendChild(notice('Verify only after you have checked the enrolment number and Bar association yourself against an official source (for example the Bar Council or the advocate\'s own certificate). A listing must not contain advertising, ratings or claims. Rejecting or suspending needs a written reason, which the applicant can see.', 'info'));
+  const { data, error } = await supabase.from('lawyer_profiles').select('*').eq('status', status).order('created_at', { ascending: true }).limit(200);
+  if (error) return notice(friendlyError(error), 'error');
+  if (!data.length) {
+    wrap.appendChild(h('p', { class: 'muted' }, `No ${status} applications.`));
+    return wrap;
+  }
+  for (const r of data) {
+    const card = h('div', { class: 'card stack' });
+    card.appendChild(h('h3', null, r.full_name));
+    card.appendChild(h('p', { class: 'small muted' }, `Applied ${fmtDate(r.created_at)}${r.verified_at ? ` · verified ${fmtDate(r.verified_at)}` : ''} · user ${short(r.user_id)}`));
+    const rows = [
+      ['Enrolment no.', `${r.enrollment_no}${r.enrollment_year ? ` (${r.enrollment_year})` : ''}`],
+      ['Bar association', r.bar_association],
+      ['Courts', (r.courts || []).join(', ')],
+      ['Areas of law', (r.practice_areas || []).join(', ')],
+      ['District', r.district],
+      ['Office address', r.office_address],
+      ['Phone', r.phone],
+      ['Email', r.email || '—'],
+      ['Qualifications', r.qualifications || '—'],
+      ['Public consent', r.consent_public ? 'yes' : 'no'],
+      ['Review note', r.review_note || '—'],
+    ];
+    card.appendChild(h('dl', { class: 'facts' }, rows.map(([k, v]) => h('div', { class: 'fact' }, h('dt', null, k), h('dd', null, String(v))))));
+    const actions = h('div', { class: 'adm-actions' });
+    const apply = (next, needReason) => async (e) => {
+      let note = null;
+      if (needReason) {
+        note = (window.prompt(next === 'rejected' ? 'Reason for rejecting (the applicant will see this):' : 'Reason for suspending (the applicant will see this):') || '').trim();
+        if (note.length < 5) { alert('A reason of at least 5 characters is required.'); return; }
+      }
+      await busy(e.currentTarget, async () => {
+        const patch = { status: next, review_note: note };
+        const { error: err } = await supabase.from('lawyer_profiles').update(patch).eq('id', r.id);
+        if (err) alert(String(err.code) === '23505' ? 'Another verified lawyer already has this Bar association and enrolment number.' : friendlyError(err));
+        else card.remove();
+      });
+    };
+    if (status !== 'verified') actions.appendChild(btn('Verify / যাচাই', { variant: 'primary', onClick: apply('verified', false) }));
+    if (status === 'pending') actions.appendChild(btn('Reject', { onClick: apply('rejected', true) }));
+    if (status === 'verified') actions.appendChild(btn('Suspend', { onClick: apply('suspended', true) }));
+    if (status === 'rejected' || status === 'suspended') actions.appendChild(btn('Back to pending', { onClick: apply('pending', false) }));
     card.appendChild(actions);
     wrap.appendChild(card);
   }
@@ -493,6 +552,7 @@ const NAV = [
   { path: '/t/faqs', label: 'FAQs' },
   { path: '/t/notices', label: 'Notices' },
   { path: '/reports', label: 'Reports' },
+  { path: '/lawyers', label: 'Lawyers', admin: true },
   { path: '/t/legal_pages', label: 'Terms/Privacy', admin: true },
   { path: '/users', label: 'Users', admin: true },
   { path: '/settings', label: 'Settings', admin: true },
@@ -526,6 +586,7 @@ async function route() {
       else view = c ? await viewForm(b, c) : await viewList(b);
     }
     else if (a === 'reports') view = await viewReports(query);
+    else if (a === 'lawyers') view = await viewLawyers(query);
     else if (a === 'users') view = await viewUsers();
     else if (a === 'settings') view = await viewSettings();
     else if (a === 'audit') view = await viewAudit(query);
