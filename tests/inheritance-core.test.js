@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Fraction } from '../src/lib/fraction.js';
-import { christianSuccession, muslimSuccession, shareAmount, InheritanceError } from '../src/lib/inheritance-core.js';
+import { christianSuccession, muslimSuccession, shiaSuccession, shareAmount, InheritanceError } from '../src/lib/inheritance-core.js';
 
 const F = (n, d = 1) => new Fraction(BigInt(n), BigInt(d));
 const got = (res) => Object.fromEntries(res.shares.map((s) => [s.id, s.fraction.toString()]));
@@ -237,7 +237,7 @@ test('Hindu: shares always add up to exactly 1 (many shapes)', () => {
 });
 
 test('Hindu: the app refuses what the statute does not decide (no guessing)', () => {
-  assert.throws(() => hinduSuccession({ widows: 'one', sons: [] }), (e) => e.code === 'no_son_line');
+  assert.throws(() => hinduSuccession({ widows: 'none', sons: [] }), (e) => e.code === 'no_son_line');
   assert.throws(() => hinduSuccession({ widows: 'none', sons: [son('a', false)] }), (e) => e.code === 'no_son_line');
   assert.throws(() => hinduSuccession({ widows: 'none', sons: [son('a', false, { widow: 'many' })] }), (e) => e.code === 'multi_widow');
   assert.throws(() => hinduSuccession({ widows: 'none', sons: [son('a', true, { children: [son('x')] })] }), (e) => e.code === 'alive_with_children');
@@ -256,4 +256,47 @@ test('Muslim: a grandchild who died leaving heirs is outside MFLO s.4 and is ref
   let code = null;
   try { muslimSuccession({ children: tree }); } catch (e) { code = e.code; }
   assert.equal(code, 'unsupported_heirs');
+});
+
+test('Shia (Imami): cases checked against Sistani 2750-2755 and Mughniyya examples', () => {
+  const got2 = (r) => Object.fromEntries(r.shares.map((s) => [s.id, s.fraction.toString()]));
+  assert.deepEqual(got2(shiaSuccession({ fatherAlive: true, motherAlive: true, children: [Fm('d')] })), { mother: '1/5', father: '1/5', d: '3/5' }); // 2750
+  assert.deepEqual(got2(shiaSuccession({ fatherAlive: true, motherAlive: true, children: [M('s')] })), { mother: '1/6', father: '1/6', s: '2/3' }); // 2751
+  assert.deepEqual(got2(shiaSuccession({ motherAlive: true, children: [Fm('d')] })), { mother: '1/4', d: '3/4' }); // 2754, Mughniyya ex.2
+  assert.deepEqual(got2(shiaSuccession({ fatherAlive: true, children: [Fm('a'), Fm('b')] })), { father: '1/5', a: '2/5', b: '2/5' }); // 2755
+  assert.deepEqual(got2(shiaSuccession({ spouse: 'husband', fatherAlive: true, motherAlive: true })), { spouse: '1/2', mother: '1/3', father: '1/6' }); // Mughniyya ex.4 (3/6, 2/6, 1/6)
+  assert.deepEqual(got2(shiaSuccession({ spouse: 'wives', wives: 1, fatherAlive: true, motherAlive: true })), { 'wife:1': '1/4', mother: '1/3', father: '5/12' });
+});
+
+test('Shia (Imami): no awl, the daughters bear the shortfall; spouse gets no radd', () => {
+  const r = shiaSuccession({ spouse: 'husband', fatherAlive: true, motherAlive: true, children: [Fm('a'), Fm('b')] });
+  assert.deepEqual(Object.fromEntries(r.shares.map((s) => [s.id, s.fraction.toString()])), { spouse: '1/4', mother: '1/6', father: '1/6', a: '5/24', b: '5/24' });
+  const w = shiaSuccession({ spouse: 'wives', wives: 1, children: [Fm('d')] });
+  assert.deepEqual(Object.fromEntries(w.shares.map((s) => [s.id, s.fraction.toString()])), { 'wife:1': '1/8', d: '7/8' });
+  assert.equal(code(() => shiaSuccession({ spouse: 'husband' })), 'no_other_heirs');
+  assert.equal(code(() => shiaSuccession({ children: [M('s')], otherHeirs: true })), 'unsupported_heirs');
+});
+
+test('Shia (Imami): shares always add to exactly 1 and every basis is declared', async () => {
+  const { BASIS_IDS, BASIS_SUFFIXES } = await import('../src/lib/inheritance-core.js');
+  const ok = (b) => BASIS_IDS.includes(b) || BASIS_SUFFIXES.some((s) => b.endsWith(s) && BASIS_IDS.includes(b.slice(0, -s.length)));
+  for (const sp of ['none', 'husband', 'wives']) for (const fa of [false, true]) for (const mo of [false, true]) for (const kids of [[], [M('s')], [Fm('d')], [Fm('d1'), Fm('d2')], [M('s'), Fm('d')], [M('s', [M('x')], false), Fm('d')]]) {
+    try {
+      const r = shiaSuccession({ spouse: sp, wives: 2, fatherAlive: fa, motherAlive: mo, children: kids });
+      let tot = F(0);
+      for (const s of r.shares) { tot = tot.add(s.fraction); assert.ok(ok(s.basis), s.basis); }
+      assert.equal(tot.toString(), '1');
+    } catch (e) {
+      assert.ok(e instanceof InheritanceError);
+    }
+  }
+});
+
+test('Hindu: with no son line a widow (or all widows together) takes the whole estate', () => {
+  const one = hinduSuccession({ widows: 'one', sons: [] });
+  assert.deepEqual(one.shares.map((x) => [x.id, x.fraction.toString()]), [['widows', '1']]);
+  assert.ok(one.notes.includes('hi_limited_estate'));
+  const many = hinduSuccession({ widows: 'many', sons: [{ id: 'c1', alive: false, widow: 'none', children: [] }], otherHeirs: true });
+  assert.deepEqual(many.shares.map((x) => x.fraction.toString()), ['1']);
+  assert.ok(many.notes.includes('hi_widows_together') && many.notes.includes('hi_widow_before_others'));
 });

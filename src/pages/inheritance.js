@@ -3,10 +3,10 @@
 
 import { h, clear } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
-import { banner, button, badge, externalLink } from '../ui/components.js';
+import { banner, button, badge } from '../ui/components.js';
 import { t, getLang } from '../i18n/index.js';
 import { RULE_STATUS, RELIGIONS, isLive } from '../lib/inheritance-status.js';
-import { christianSuccession, muslimSuccession, hinduSuccession, shareAmount, InheritanceError } from '../lib/inheritance-core.js';
+import { christianSuccession, muslimSuccession, shiaSuccession, hinduSuccession, shareAmount, InheritanceError } from '../lib/inheritance-core.js';
 
 const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
 const digits = (s) => (getLang() === 'bn' ? String(s).replace(/[0-9]/g, (d) => BN_DIGITS[Number(d)]) : String(s));
@@ -20,6 +20,7 @@ export default function render() {
     religion: null,
     spouseAlive: false,
     widows: 'none',
+    school: 'hanafi',
     spouse: 'none',
     wives: 1,
     fatherAlive: false,
@@ -147,6 +148,7 @@ export default function render() {
 
   function muslimForm() {
     return [
+      h('div', { class: 'card' }, h('label', { class: 'lc-label' }, t('inh.school'), select([{ value: 'hanafi', label: t('inh.school.hanafi') }, { value: 'jafari', label: t('inh.school.jafari') }], state.school, (v) => { state.school = v; changed(); }, t('inh.school'), 'school'))),
       h('p', { class: 'muted small' }, t('inh.muslimScope')),
       h('div', { class: 'card' }, h('label', { class: 'lc-label' }, t('inh.spouse'), select([{ value: 'none', label: t('inh.spouse.none') }, { value: 'husband', label: t('inh.spouse.husband') }, { value: 'wives', label: t('inh.spouse.wives') }], state.spouse, (v) => { state.spouse = v; changed(); }, t('inh.spouse'), 'spouse-kind')),
         state.spouse === 'wives' ? h('label', { class: 'lc-label' }, t('inh.wivesCount'), select([1, 2, 3, 4].map((k) => ({ value: k, label: digits(k) })), state.wives, (v) => { state.wives = Number(v); changed(); }, t('inh.wivesCount'), 'wives')) : null),
@@ -172,7 +174,7 @@ export default function render() {
     ];
   }
 
-  const NOTE_KEY = { christian: 'inh.christianNote', muslim: 'inh.muslimNote', hindu: 'inh.hinduNote', buddhist: 'inh.buddhistNote' };
+  const NOTE_KEY = { christian: 'inh.christianNote', muslim: 'inh.muslimNote', muslim_shia: 'inh.muslimNoteShia', hindu: 'inh.hinduNote', buddhist: 'inh.buddhistNote' };
   function paintForm() {
     clear(formHost);
     if (!state.religion) return paintChooser();
@@ -180,9 +182,13 @@ export default function render() {
     formHost.appendChild(
       h('div', { class: 'row-between' }, h('strong', null, t(`inh.religion.${r}`)), button(t('inh.change'), { variant: 'ghost', onClick: () => { state.religion = null; state.calculated = false; paintForm(); paintResult(); } })),
     );
-    if (RULE_STATUS[r].status === 'pending_review') formHost.appendChild(banner(t('inh.previewBanner'), { tone: 'warning', iconName: 'alert' }));
+    if (RULE_STATUS[r].status === 'pending_review') {
+      const srcKey = r === 'muslim' && state.school === 'jafari' ? 'muslim_shia' : r;
+      const list = t(`inh.srcList.${srcKey}`);
+      formHost.appendChild(banner(RULE_STATUS[r].legalBasisUnconfirmed ? list : t('inh.checkedAgainst', { list }), { tone: 'info', iconName: 'info' }));
+    }
     if (RULE_STATUS[r].legalBasisUnconfirmed) formHost.appendChild(banner(t('inh.buddhistWarn'), { tone: 'warning', iconName: 'alert' }));
-    formHost.appendChild(banner(t(NOTE_KEY[r]), { tone: 'info', iconName: 'info' }));
+    formHost.appendChild(banner(t(NOTE_KEY[r === 'muslim' && state.school === 'jafari' ? 'muslim_shia' : r]), { tone: 'info', iconName: 'info' }));
     formHost.append(...(r === 'christian' ? christianForm() : r === 'muslim' ? muslimForm() : hinduForm()));
     formHost.appendChild(h('div', { class: 'card' }, h('label', { class: 'lc-label' }, t('inh.estate'), estateInput), h('p', { class: 'muted small' }, t('inh.estateHint'))));
     formHost.appendChild(button(t('inh.calc'), { variant: 'primary', block: true, onClick: () => { state.calculated = true; paintResult(); resultHost.scrollIntoView?.({ block: 'start' }); } }));
@@ -193,14 +199,15 @@ export default function render() {
     for (const r of RELIGIONS) {
       const usable = isLive(r);
       const st = RULE_STATUS[r].status;
-      const tone = st === 'pending_review' ? 'warning' : st === 'unavailable' ? 'neutral' : 'success';
+      const unconfirmed = !!RULE_STATUS[r].legalBasisUnconfirmed;
+      const tone = unconfirmed || st === 'unavailable' ? 'neutral' : 'success';
       formHost.appendChild(
         h(
           usable ? 'button' : 'div',
-          { class: `module${usable ? ' module-live' : ''}`, type: usable ? 'button' : undefined, dataset: { religion: r }, onclick: usable ? () => { Object.assign(state, { religion: r, spouseAlive: false, spouse: 'none', wives: 1, widows: 'none', fatherAlive: false, motherAlive: false, children: [], siblings: [], kin: 0, other: false, noKin: false, calculated: false }); paintForm(); paintResult(); } : undefined },
+          { class: `module${usable ? ' module-live' : ''}`, type: usable ? 'button' : undefined, dataset: { religion: r }, onclick: usable ? () => { Object.assign(state, { religion: r, school: 'hanafi', spouseAlive: false, spouse: 'none', wives: 1, widows: 'none', fatherAlive: false, motherAlive: false, children: [], siblings: [], kin: 0, other: false, noKin: false, calculated: false }); paintForm(); paintResult(); } : undefined },
           h('span', { class: 'module-icon' }, icon('family')),
-          h('span', { class: 'module-text' }, h('strong', null, t(`inh.religion.${r}`)), h('span', { class: 'muted small' }, t(`inh.status.${st}.desc`))),
-          badge(t(`inh.status.${st}`), tone),
+          h('span', { class: 'module-text' }, h('strong', null, t(`inh.religion.${r}`)), h('span', { class: 'muted small' }, st === 'pending_review' ? t(`inh.srcList.${r}`) : t(`inh.status.${st}.desc`))),
+          badge(t(unconfirmed ? 'inh.status.news' : `inh.status.${st}`), tone),
         ),
       );
     }
@@ -244,14 +251,14 @@ export default function render() {
     }
     return {
       labels,
-      res: muslimSuccession({ spouse: state.spouse, wives: state.wives, fatherAlive: state.fatherAlive, motherAlive: state.motherAlive, children: toEngine(state.children, '', labels, true), otherHeirs: state.other }),
+      res: (state.school === 'jafari' ? shiaSuccession : muslimSuccession)({ spouse: state.spouse, wives: state.wives, fatherAlive: state.fatherAlive, motherAlive: state.motherAlive, children: toEngine(state.children, '', labels, true), otherHeirs: state.other }),
     };
   }
 
   function basisText(b) {
-    const suffix = b.endsWith('+awl') ? '+awl' : b.endsWith('+radd') ? '+radd' : '';
+    const suffix = ['+awl', '+radd', '+def'].find((x) => b.endsWith(x)) || '';
     const base = suffix ? b.slice(0, -suffix.length) : b;
-    return `${t(`inh.basis.${base}`)}${suffix ? ` ${t(suffix === '+awl' ? 'inh.awl' : 'inh.radd')}` : ''}`;
+    return `${t(`inh.basis.${base}`)}${suffix ? ` ${t(suffix === '+awl' ? 'inh.awl' : suffix === '+def' ? 'inh.def' : 'inh.radd')}` : ''}`;
   }
 
   function paintResult() {
@@ -288,7 +295,7 @@ export default function render() {
     const bases = [...new Set(res.shares.map((s) => s.basis))];
     resultHost.appendChild(h('div', { class: 'card' }, h('p', { class: 'eyebrow' }, t('inh.basisTitle')), h('ul', { class: 'plain-list' }, bases.map((b) => h('li', null, basisText(b))))));
     for (const n of res.notes || []) resultHost.appendChild(banner(t(`inh.note.${n}`), { tone: 'info', iconName: 'info' }));
-    const info = RULE_STATUS[state.religion];
+    const info = RULE_STATUS[state.religion === 'muslim' && state.school === 'jafari' ? 'muslim_shia' : state.religion];
     resultHost.appendChild(
       h(
         'p',
@@ -296,16 +303,10 @@ export default function render() {
         icon('info', 'icon-inline'),
         t('inh.source'),
         ': ',
-        info.url ? externalLink(info.url, info.law) : info.law,
+        info.law,
         info.checkedOn ? ` (${t('inh.checked')}: ${digits(info.checkedOn)})` : '',
       ),
     );
-    if (info.sources?.length) {
-      resultHost.appendChild(
-        h('div', { class: 'card', dataset: { id: 'inh-sources' } }, h('p', { class: 'eyebrow' }, t('inh.sources')),
-          h('ul', { class: 'plain-list' }, info.sources.map((x) => h('li', null, badge(t(`inh.kind.${x.kind}`), x.kind === 'official' ? 'success' : 'neutral'), ' ', x.url ? externalLink(x.url, x.label) : x.label)))),
-      );
-    }
   }
 
   root.append(formHost, resultHost, h('p', { class: 'fineprint' }, icon('info', 'icon-inline'), t('inh.disclaimer')));

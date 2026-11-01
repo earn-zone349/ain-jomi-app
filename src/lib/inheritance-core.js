@@ -17,10 +17,10 @@ const fail = (code) => {
 export const BASIS_IDS = [
   'SA_37', 'SA_38', 'SA_39', 'SA_40', 'SA_33_35_a', 'SA_33_35_b', 'SA_33_35_c', 'SA_34', 'SA_42', 'SA_43', 'SA_44', 'SA_45', 'SA_46', 'SA_47', 'SA_48',
   'MU_husband', 'MU_husband_desc', 'MU_wife', 'MU_wife_desc', 'MU_mother', 'MU_mother_desc', 'MU_mother_umar', 'MU_father_desc', 'MU_father_residue',
-  'MU_father_res', 'MU_daughter_one', 'MU_daughters', 'MU_residue_children', 'MFLO_4',
-  'HI_son', 'HI_stirpes', 'HI_widow', 'HI_pw', 'HI_pw_gs',
+  'MU_father_res', 'MU_daughter_one', 'MU_daughters', 'MU_residue_children', 'MFLO_4', 'SH_mother_third',
+  'HI_son', 'HI_stirpes', 'HI_widow', 'HI_widow_all', 'HI_pw', 'HI_pw_gs',
 ];
-export const BASIS_SUFFIXES = ['+awl', '+radd'];
+export const BASIS_SUFFIXES = ['+awl', '+radd', '+def'];
 
 const F = (n, d = 1) => new Fraction(BigInt(n), BigInt(d));
 
@@ -251,6 +251,85 @@ export function muslimSuccession(input) {
   return seal(shares);
 }
 
+/* ------------------------------------------------------------------ Muslim, Shia (Ithna 'Ashari / Imami)
+
+/**
+ * Imami (Twelver Shia) law, same heirs as the Sunni module (spouse, father, mother, children and, by MFLO s.4, a predeceased child's children).
+ * Rules (Qur'an 4:11-12; Mughniyya, "Inheritance according to the Five Schools of Islamic Law"; Sistani, Islamic Laws, rulings 2748-2756):
+ *  - spouse: husband 1/2 or 1/4, wife (all wives together) 1/4 or 1/8 (the same as Sunni law);
+ *  - parents: each 1/6 with a child; with no child the mother takes 1/3 OF THE WHOLE ESTATE even beside a spouse and the father
+ *    (no 'Umariyyatain), and the father takes the rest;
+ *  - children: sons and daughters take what is left 2:1; daughters alone are 1/2 (one) or 2/3 (two or more);
+ *  - NO 'awl: when the fixed shares exceed the estate the daughters' share is reduced, the spouse and the parents keep theirs;
+ *  - radd: a surplus returns to the parents and daughters in proportion to their shares, never to a wife or husband.
+ */
+export function shiaSuccession(input) {
+  const { spouse = 'none', wives = 1, fatherAlive = false, motherAlive = false, children = [], otherHeirs = false } = input;
+  if (otherHeirs) fail('unsupported_heirs');
+  if (!['none', 'husband', 'wives'].includes(spouse)) fail('bad_input');
+  if (spouse === 'wives' && (!Number.isInteger(wives) || wives < 1 || wives > 4)) fail('bad_input');
+  checkTree(children);
+  for (const n of walk(children)) if (n.sex !== 'M' && n.sex !== 'F') fail('bad_input');
+  for (const c of children) for (const g of c.children || []) if (!g.alive && (g.children || []).some(hasLiving)) fail('unsupported_heirs');
+
+  const lines = children.filter(hasLiving);
+  const sons = lines.filter((n) => n.sex === 'M');
+  const daughters = lines.filter((n) => n.sex === 'F');
+  const hasDesc = lines.length > 0;
+  const hasSon = sons.length > 0;
+
+  const entries = new Map();
+  let spouseF = ZERO;
+  if (spouse === 'husband') spouseF = hasDesc ? F(1, 4) : F(1, 2);
+  if (spouse === 'wives') spouseF = hasDesc ? F(1, 8) : F(1, 4);
+  if (spouse !== 'none') entries.set('spouse', { f: spouseF, basis: spouse === 'husband' ? (hasDesc ? 'MU_husband_desc' : 'MU_husband') : hasDesc ? 'MU_wife_desc' : 'MU_wife' });
+  const motherF = motherAlive ? (hasDesc ? F(1, 6) : F(1, 3)) : ZERO;
+  if (motherAlive) entries.set('mother', { f: motherF, basis: hasDesc ? 'MU_mother_desc' : 'SH_mother_third' });
+  const fatherF = fatherAlive && hasDesc ? F(1, 6) : ZERO;
+  if (fatherAlive && hasDesc) entries.set('father', { f: fatherF, basis: 'MU_father_desc' });
+  const fixed = spouseF.add(motherF).add(fatherF);
+
+  if (hasSon) {
+    entries.set('sonsPool', { f: ONE.sub(fixed), basis: 'MU_residue_children' });
+  } else if (hasDesc) {
+    const nominal = daughters.length === 1 ? F(1, 2) : F(2, 3);
+    const base = daughters.length === 1 ? 'MU_daughter_one' : 'MU_daughters';
+    const total = fixed.add(nominal);
+    if (total.cmp(ONE) > 0) {
+      entries.set('daughters', { f: ONE.sub(fixed), basis: `${base}+def` });
+    } else if (total.cmp(ONE) < 0) {
+      const back = ['mother', 'father'].filter((k) => entries.has(k)).map((k) => ({ k, f: entries.get(k).f })).concat([{ k: 'daughters', f: nominal }]);
+      const backTotal = sum(back.map((b) => b.f));
+      const rest = ONE.sub(total);
+      for (const b of back) {
+        const add = rest.mul(b.f).div(backTotal);
+        if (b.k === 'daughters') entries.set('daughters', { f: nominal.add(add), basis: `${base}+radd` });
+        else entries.set(b.k, { f: b.f.add(add), basis: `${entries.get(b.k).basis}+radd` });
+      }
+    } else entries.set('daughters', { f: nominal, basis: base });
+  } else if (fatherAlive) {
+    entries.set('father', { f: ONE.sub(fixed), basis: 'MU_father_res' });
+  } else {
+    const rest = ONE.sub(fixed);
+    if (!rest.isZero()) {
+      if (!motherAlive) fail(spouse !== 'none' ? 'no_other_heirs' : 'no_supported_heirs');
+      entries.set('mother', { f: motherF.add(rest), basis: `${entries.get('mother').basis}+radd` });
+    }
+  }
+  if (!entries.size) fail('no_supported_heirs');
+
+  const shares = [];
+  for (const [key, e] of entries) {
+    if (key === 'spouse') {
+      if (spouse === 'wives') for (let i = 1; i <= wives; i += 1) shares.push({ id: `wife:${i}`, fraction: e.f.div(F(wives)), basis: e.basis });
+      else shares.push({ id: 'spouse', fraction: e.f, basis: e.basis });
+    } else if (key === 'mother' || key === 'father') shares.push({ id: key, fraction: e.f, basis: e.basis });
+    else if (key === 'daughters') shares.push(...splitByWeight(daughters.map((n) => ({ node: n, w: 1 })), e.f, e.basis));
+    else if (key === 'sonsPool') shares.push(...splitByWeight(lines.map((n) => ({ node: n, w: n.sex === 'M' ? 2 : 1 })), e.f, e.basis));
+  }
+  return seal(shares);
+}
+
 /* ------------------------------------------------------------------ Hindu (Dayabhaga) and Buddhist: narrow, sourced scope */
 
 /**
@@ -277,7 +356,16 @@ export function hinduSuccession(input) {
   checkSons(sons);
   const hasHeir = (n) => n.alive || (n.widow || 'none') === 'one' || (n.children || []).some(hasHeir);
   const lines = sons.filter(hasHeir);
-  if (!lines.length) fail('no_son_line');
+  if (!lines.length) {
+    // Dayabhaga order: with no son, grandson or great-grandson, the widow (all widows together) takes the whole estate, before the daughters and everyone after.
+    if (widows === 'none') fail('no_son_line');
+    const only = [{ id: 'widows', fraction: ONE, basis: 'HI_widow_all' }];
+    const o = seal(only);
+    o.notes = ['hi_limited_estate'];
+    if (widows === 'many') o.notes.push('hi_widows_together');
+    if (otherHeirs) o.notes.push('hi_widow_before_others');
+    return o;
+  }
 
   const shares = [];
   const hasWidows = widows !== 'none';

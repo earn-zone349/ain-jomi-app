@@ -31,6 +31,24 @@ export const RULE_STATUS = {
       { id: 'um', label: 'The Umari issue of inheritance (spouse and both parents: mother takes a third of the remainder)', url: 'https://old.islamic-content.com/dictionary/word/12008/en', kind: 'reference' },
     ],
   },
+  // Same religion card as `muslim`; shown when the person picks the Shia (Ithna 'Ashari / Imami) school.
+  muslim_shia: {
+    status: 'pending_review',
+    law: "Shia (Ithna 'Ashari, Imami) law of inheritance (Qur'an 4:11-12), with the Muslim Family Laws Ordinance 1961, s.4 (orphaned grandchildren)",
+    url: 'https://bdlaws.minlaw.gov.bd/act-print-305.html',
+    checkedOn: '2026-11-01',
+    reviewedBy: null,
+    scope: 'spouse_parents_children',
+    sources: [
+      { id: 'mflo', label: 'The Muslim Family Laws Ordinance, 1961 (Ordinance VIII of 1961), section 4 (official text, bdlaws)', url: 'https://bdlaws.minlaw.gov.bd/act-print-305.html', kind: 'official' },
+      { id: 'q', label: 'Quran 4:11 and 4:12 (Sahih International)', url: 'https://legacy.quran.com/4/11-23', kind: 'scripture' },
+      { id: 'si', label: 'Ayatollah al-Sistani, Islamic Laws: inheritance of the first group, rulings 2748-2756 (parents, children, grandchildren)', url: 'https://sistani.org/english/book/48/8237', kind: 'scripture' },
+      { id: 'mg1', label: 'M. J. Mughniyya, Inheritance according to the Five Schools: the mother takes one third of the whole estate, not of the remainder (al-islam.org)', url: 'https://al-islam.org/node/43458', kind: 'reference' },
+      { id: 'mg2', label: 'M. J. Mughniyya, Inheritance according to the Five Schools: shares of the spouses and radd (al-islam.org)', url: 'https://al-islam.org/bn/node/43464', kind: 'reference' },
+      { id: 'mg3', label: 'M. J. Mughniyya, Inheritance according to the Five Schools: illustrations, Imami vs Sunni (al-islam.org)', url: 'https://al-islam.org/node/43467', kind: 'reference' },
+      { id: 'aw', label: "MAJALLA, Shia fiqh on 'awl: no 'awl, the shortfall falls on the daughters", url: 'https://majalla.org/ilm/shia-fiqh-on-awl/', kind: 'reference' },
+    ],
+  },
   hindu: {
     status: 'pending_review',
     law: 'The Hindu Women\'s Rights to Property Act, 1937 (Act No. XVIII of 1937), ss.2-3, with the Dayabhaga school of Hindu law (not codified)',
