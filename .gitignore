@@ -16,3 +16,4 @@ dist-web/
 keystore-secrets.txt
 public/data/
 tests/harness/data/
+web/public/data/

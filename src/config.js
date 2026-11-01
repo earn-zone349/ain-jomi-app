@@ -26,7 +26,7 @@ export const CONFIG = {
     { id: 'land_calculator', icon: 'calc', route: '/tools/land', bundled: true },
     { id: 'inheritance', icon: 'family', route: '/tools/inheritance', bundled: true },
     { id: 'gov_services', icon: 'land', route: '/tools/services', bundled: true },
-    { id: 'ai_assistant', icon: 'bot', route: null },
+    { id: 'ai_assistant', icon: 'bot', route: '/tools/assistant' },
     { id: 'lawyers', icon: 'scale', route: '/tools/lawyers' },
   ],
 };

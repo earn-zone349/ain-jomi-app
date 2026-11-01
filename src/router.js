@@ -21,6 +21,7 @@ const ROUTES = [
   { path: '/tools', load: () => import('./pages/tools.js'), tab: 'tools' },
   { path: '/tools/inheritance', load: () => import('./pages/inheritance.js'), tab: 'tools', back: true },
   { path: '/tools/services', load: () => import('./pages/services.js'), tab: 'tools', back: true },
+  { path: '/tools/assistant', load: () => import('./pages/assistant.js'), tab: 'tools', back: true },
   { path: '/tools/lawyers', load: () => import('./pages/lawyers.js'), tab: 'tools', back: true },
   { path: '/tools/lawyers/apply', load: () => import('./pages/lawyer-apply.js'), tab: 'tools', back: true },
   { path: '/tools/land', load: () => import('./pages/land.js'), tab: 'tools', back: true },

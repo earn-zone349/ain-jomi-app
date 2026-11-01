@@ -10,6 +10,7 @@ on:
       - 'src/**'
       - 'content/**'
       - 'scripts/build-legal.mjs'
+      - 'scripts/build-ai.mjs'
       - 'vite.web.config.js'
       - 'package.json'
 

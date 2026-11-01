@@ -38,8 +38,11 @@ We use encrypted connections and access controls. No system is perfectly secure,
 # 8. Children
 The app is not directed at children under 13, and we do not knowingly collect their data.
 
-# 9. Changes
+# 9. AI assistant
+When you ask the AI assistant a question, the question goes to our server and is sent to an outside AI provider (Anthropic) to write the answer. We do not store the text of your question. To count how many questions are asked each day we keep a random device number and a hash (one-way code) of your IP address. Do not put your name, phone number, national ID or confidential case details in a question. The offline search sends nothing out of your phone.
+
+# 10. Changes
 When we add features that handle more data, for example saving your own documents, we will update this policy and tell you in the app before those features collect anything new.
 
-# 10. Contact
+# 11. Contact
 {{SUPPORT_EMAIL}}

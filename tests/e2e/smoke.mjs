@@ -5,12 +5,15 @@
 import { createRequire } from 'node:module';
 import { startServer } from '../harness/server.mjs';
 import { mkdirSync } from 'node:fs';
+import { copyFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 // Build the law catalogue from the fixture JSON files, exactly like the real build does.
 execFileSync('node', ['scripts/build-laws.mjs'], { env: { ...process.env, CONTENT_DIR: 'tests/fixtures/content', DATA_OUT: 'tests/harness/data' }, stdio: 'inherit' });
 execFileSync('node', ['scripts/build-land.mjs'], { env: { ...process.env, LAND_OUT: 'tests/harness/data/land' }, stdio: 'inherit' });
 execFileSync('node', ['scripts/build-services.mjs'], { env: { ...process.env, SERVICES_OUT: 'tests/harness/data/services' }, stdio: 'inherit' });
+execFileSync('node', ['scripts/build-ai.mjs'], { stdio: 'inherit' });
+copyFileSync('public/data/ai-corpus.json', 'tests/harness/data/ai-corpus.json');
 
 // ESM ignores NODE_PATH, so resolve Playwright explicitly (local install or a global one).
 const require = createRequire(import.meta.url);
@@ -27,7 +30,7 @@ const page = await context.newPage();
 const problems = [];
 const results = [];
 page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
-page.on('console', (m) => { if (m.type() === 'error') problems.push(`console.error: ${m.text()}`); });
+page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.includes('/functions/v1/ask')) problems.push(`console.error: ${m.text()}`); }); // the assistant tests answer that URL with deliberate errors
 
 function check(name, ok, detail = '') {
   results.push({ name, ok });
@@ -416,6 +419,39 @@ check('category filter shows only legal aid', (await page.locator('[data-service
 await page.locator('[data-service="legal_aid"] summary').click();
 check('legal aid shows 16430 as a phone link and does not claim it is free', (await page.locator('a[href="tel:16430"]').count()) === 1 && !/free/i.test((await text('[data-service="legal_aid"]')).replace(/not say whether the hotline is free/, '')));
 await shot('15-services');
+await page.locator('.tab[data-tab="home"]').click();
+
+// 11d2. AI assistant (flag-gated; answer only from verified passages; falls back to on-phone search)
+await page.locator('.tab[data-tab="tools"]').click();
+check('assistant card is not live while the flag is off', (await page.locator('.module-live', { hasText: 'AI legal assistant' }).count()) === 0);
+await page.evaluate(() => { __fake.setSetting('feature_flags', { ai_assistant: true }); window.dispatchEvent(new Event('online')); });
+await page.waitForTimeout(500);
+await page.locator('.module-live', { hasText: 'AI legal assistant' }).click();
+await page.waitForSelector('[data-id="ai-q"]');
+const okAnswer = { ok: true, mode: 'answer', answer: 'The fee for a khatian obtained through an online application is 100 taka.', cites: [{ id: 'service:land_record_online', kind: 'service', title: 'Khatian / parcha online', ref: 'Government service guide', text: 'Khatian obtained through online application 100 taka', route: '/tools/services' }], related: [], remaining: 7 };
+await page.route('**/functions/v1/ask', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(okAnswer) }));
+await page.locator('[data-id="ai-q"]').fill('What is the fee for a khatian?');
+await page.locator('button', { hasText: /^Ask$/ }).click();
+await page.waitForSelector('[data-id="ai-answer"]');
+check('answer shown with its source passage and questions left', (await text('[data-id="ai-answer"]')).includes('100 taka') && (await page.locator('[data-passage="service:land_record_online"]').count()) === 1 && (await text('[data-id="ai-left"]')).includes('7'));
+await page.unroute('**/functions/v1/ask');
+await page.route('**/functions/v1/ask', (r) => r.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'rate_limit' }) }));
+await page.locator('[data-id="ai-q"]').fill('how do I get a khatian online');
+await page.locator('button', { hasText: /^Ask$/ }).click();
+await page.waitForSelector('[data-passage]');
+check('over the daily limit: says so and still searches the verified content on the phone', (await text('[data-id="ai-out"]')).includes("used today's questions") && (await page.locator('[data-passage="service:land_record_online"]').count()) === 1, await text('[data-id="ai-out"]'));
+await page.unroute('**/functions/v1/ask');
+await page.route('**/functions/v1/ask', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, mode: 'passages', reason: 'ungrounded_number', passages: okAnswer.cites, remaining: 6 }) }));
+await page.locator('button', { hasText: /^Ask$/ }).click();
+await page.waitForSelector('[data-passage]');
+check('a rejected answer is never shown; the passages are', (await page.locator('[data-id="ai-answer"]').count()) === 0 && (await text('[data-id="ai-out"]')).includes('not in the passages'));
+await page.unroute('**/functions/v1/ask');
+await page.route('**/functions/v1/ask', (r) => r.abort());
+await page.locator('[data-id="ai-q"]').fill('zzzzqx');
+await page.locator('button', { hasText: /^Ask$/ }).click();
+await page.waitForFunction(() => document.querySelector('[data-id="ai-out"]')?.textContent.includes('nothing on this question'));
+check('nothing in the content: says so, makes nothing up', (await page.locator('[data-passage]').count()) === 0);
+await page.unroute('**/functions/v1/ask');
 await page.locator('.tab[data-tab="home"]').click();
 
 // 11e. lawyer directory (flag-gated; public list; paid contact + paid rating; one-page advocate sign-up)

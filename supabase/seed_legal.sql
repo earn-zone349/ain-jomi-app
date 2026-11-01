@@ -135,10 +135,13 @@ Questions about these terms: the support contact shown in the app$aj$, 1, 'publi
 # ৮. শিশু
 অ্যাপটি ১৩ বছরের কম বয়সীদের জন্য নয়, এবং আমরা জেনেশুনে তাদের তথ্য সংগ্রহ করি না।
 
-# ৯. পরিবর্তন
+# ৯. AI সহকারী
+আপনি AI সহকারীকে প্রশ্ন করলে প্রশ্নটি আমাদের সার্ভারে যায় এবং উত্তর লেখার জন্য একটি বাইরের AI সেবাদাতা (Anthropic) এর কাছে পাঠানো হয়। আমরা প্রশ্নের লেখা সংরক্ষণ করি না। দিনে কতটি প্রশ্ন করা হলো তা গুনতে আপনার ফোনের একটি এলোমেলো পরিচয় নম্বর ও আইপি ঠিকানার হ্যাশ (একমুখী সংকেত) রাখা হয়। প্রশ্নে নিজের নাম, ফোন, জাতীয় পরিচয়পত্র বা মামলার গোপন তথ্য লিখবেন না। অফলাইন খোঁজে কিছুই ফোনের বাইরে যায় না।
+
+# ১০. পরিবর্তন
 যখন আমরা বেশি তথ্য নেয় এমন ফিচার যোগ করব, যেমন আপনার নিজের কাগজপত্র সংরক্ষণ, তখন নতুন কিছু সংগ্রহের আগে এই নীতি হালনাগাদ করব এবং অ্যাপে জানাব।
 
-# ১০. যোগাযোগ
+# ১১. যোগাযোগ
 অ্যাপে দেওয়া যোগাযোগের ঠিকানা$aj$, $aj$Privacy Policy
 
 Effective: 31 October 2026
@@ -179,9 +182,12 @@ We use encrypted connections and access controls. No system is perfectly secure,
 # 8. Children
 The app is not directed at children under 13, and we do not knowingly collect their data.
 
-# 9. Changes
+# 9. AI assistant
+When you ask the AI assistant a question, the question goes to our server and is sent to an outside AI provider (Anthropic) to write the answer. We do not store the text of your question. To count how many questions are asked each day we keep a random device number and a hash (one-way code) of your IP address. Do not put your name, phone number, national ID or confidential case details in a question. The offline search sends nothing out of your phone.
+
+# 10. Changes
 When we add features that handle more data, for example saving your own documents, we will update this policy and tell you in the app before those features collect anything new.
 
-# 10. Contact
+# 11. Contact
 the support contact shown in the app$aj$, 1, 'published')
 on conflict (slug) do nothing;
