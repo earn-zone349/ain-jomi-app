@@ -52,13 +52,9 @@ await page.waitForSelector('.lang-grid');
 check('welcome screen shows language chooser', (await page.locator('.lang-card').count()) === 2);
 await shot('01-language');
 await page.locator('.lang-card', { hasText: 'বাংলা' }).click();
-await page.waitForSelector('#accept');
-check('disclaimer shown in Bangla', (await text('.welcome-card')).includes('গুরুত্বপূর্ণ বিজ্ঞপ্তি'));
-check('start button disabled until accepted', await page.locator('.welcome .btn-primary').isDisabled());
-await shot('02-disclaimer');
-await page.locator('#accept').check();
-check('start button enabled after accepting', await page.locator('.welcome .btn-primary').isEnabled());
-await page.locator('.welcome .btn-primary').click();
+await page.waitForSelector('.tile');
+check('no disclaimer screen: language choice goes straight to Home', (await page.locator('#accept').count()) === 0);
+await shot('02-home-first');
 
 // 2. home + sync
 await page.waitForSelector('.tile');
@@ -399,7 +395,7 @@ facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
 check('Hindu: dead son\'s widow takes his share like a son', facts.includes('Widow of son 1') && (facts.match(/1\/3/g) || []).length === 3, facts);
 await page.locator('button', { hasText: 'Change religion' }).click();
 await page.locator('button[data-religion="buddhist"]').click();
-check('Buddhist: legal basis not confirmed warning', (await text('.page')).includes('legal basis here is not confirmed'));
+check('Buddhist: names its source, no warning banner', (await text('.page')).includes('Prothom Alo') && !/not confirmed|Important:/.test(await text('.page')));
 await page.locator('.tab[data-tab="home"]').click();
 
 // 11d. government service guides (offline, bundled data)

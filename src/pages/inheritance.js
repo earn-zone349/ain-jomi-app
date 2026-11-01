@@ -187,7 +187,6 @@ export default function render() {
       const list = t(`inh.srcList.${srcKey}`);
       formHost.appendChild(banner(RULE_STATUS[r].legalBasisUnconfirmed ? list : t('inh.checkedAgainst', { list }), { tone: 'info', iconName: 'info' }));
     }
-    if (RULE_STATUS[r].legalBasisUnconfirmed) formHost.appendChild(banner(t('inh.buddhistWarn'), { tone: 'warning', iconName: 'alert' }));
     formHost.appendChild(banner(t(NOTE_KEY[r === 'muslim' && state.school === 'jafari' ? 'muslim_shia' : r]), { tone: 'info', iconName: 'info' }));
     formHost.append(...(r === 'christian' ? christianForm() : r === 'muslim' ? muslimForm() : hinduForm()));
     formHost.appendChild(h('div', { class: 'card' }, h('label', { class: 'lc-label' }, t('inh.estate'), estateInput), h('p', { class: 'muted small' }, t('inh.estateHint'))));
