@@ -28,3 +28,15 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase6_ai.sql >/dev/null
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase6_ai.sql >/dev/null
 echo "phase6 applied twice: OK"
 psql -d "$DB" -f ai.sql
+
+# The single paste-once file: apply it three times to a fresh database, then run every test again on that result.
+DB2="${DB}_all"
+createdb "$DB2"
+trap 'dropdb --if-exists "$DB"; dropdb --if-exists "$DB2"' EXIT
+psql -q -v ON_ERROR_STOP=1 -d "$DB2" -f mock_supabase.sql >/dev/null
+for i in 1 2 3; do psql -q -1 -v ON_ERROR_STOP=1 -d "$DB2" -f ../../supabase/ALL_IN_ONE.sql >/dev/null; done
+echo "ALL_IN_ONE.sql applied three times: OK"
+psql -d "$DB2" -f behaviour.sql
+psql -d "$DB2" -f lawyers.sql
+psql -d "$DB2" -f lawyers_v2.sql
+psql -d "$DB2" -f ai.sql

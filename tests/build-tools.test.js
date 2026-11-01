@@ -109,3 +109,14 @@ test('import checker really detects broken imports', () => {
   assert.ok(problems.some((p) => p.includes('missing file ./style.css')));
   assert.ok(!problems.some((p) => p.includes("'real'")));
 });
+
+test('supabase/ALL_IN_ONE.sql is up to date (run npm run sql) and orders every script', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { buildAllSql } = await import('../scripts/build-sql.mjs');
+  const sql = buildAllSql();
+  assert.equal(readFileSync(new URL('../supabase/ALL_IN_ONE.sql', import.meta.url), 'utf8'), sql);
+  const at = (s) => sql.indexOf(s);
+  assert.ok(at('create table if not exists public.app_settings') < at('create table if not exists public.lawyer_profiles'));
+  assert.ok(at('certificate_paths') > 0 && at('create table if not exists public.ai_usage') > at('phase5_lawyers_v2.sql'));
+  assert.doesNotMatch(sql, /service_role_key|eyJ[A-Za-z0-9]{20}/i);
+});

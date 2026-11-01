@@ -8,6 +8,7 @@
     "dev": "node scripts/build-laws.mjs && node scripts/build-land.mjs && node scripts/build-services.mjs && node scripts/build-ai.mjs && vite",
     "legal": "node scripts/build-legal.mjs",
     "ai": "node scripts/build-ai.mjs",
+    "sql": "node scripts/build-sql.mjs",
     "laws": "node scripts/build-laws.mjs",
     "land": "node scripts/build-land.mjs",
     "services": "node scripts/build-services.mjs",

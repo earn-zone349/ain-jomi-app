@@ -242,7 +242,7 @@ check('back online: offline bar hidden', !(await page.locator('.offline-bar').is
 // 11b. land calculator (offline, bundled data)
 await page.locator('.tab[data-tab="tools"]').click();
 await page.waitForSelector('.module-live');
-check('Tools tab: land, inheritance and service guides are live, others coming soon', (await page.locator('.module-live').count()) === 3 && (await page.locator('.module').count()) === 5);
+check('Tools tab: land, inheritance, service guides and the assistant are live, lawyers coming soon', (await page.locator('.module-live').count()) === 4 && (await page.locator('.module').count()) === 5);
 await page.locator('.module-live').first().click();
 await page.waitForSelector('.chip-active');
 check('calculator opens on the converter tab', (await page.locator('.chip-active').first().innerText()).includes('Convert'));
@@ -419,9 +419,8 @@ await page.locator('.tab[data-tab="home"]').click();
 
 // 11d2. AI assistant (flag-gated; answer only from verified passages; falls back to on-phone search)
 await page.locator('.tab[data-tab="tools"]').click();
-check('assistant card is not live while the flag is off', (await page.locator('.module-live', { hasText: 'AI legal assistant' }).count()) === 0);
-await page.evaluate(() => { __fake.setSetting('feature_flags', { ai_assistant: true }); window.dispatchEvent(new Event('online')); });
-await page.waitForTimeout(500);
+await page.waitForSelector('.module-live');
+check('assistant card is live without any server switch (it searches the bundled content)', (await page.locator('.module-live', { hasText: 'AI legal assistant' }).count()) === 1);
 await page.locator('.module-live', { hasText: 'AI legal assistant' }).click();
 await page.waitForSelector('[data-id="ai-q"]');
 const okAnswer = { ok: true, mode: 'answer', answer: 'The fee for a khatian obtained through an online application is 100 taka.', cites: [{ id: 'service:land_record_online', kind: 'service', title: 'Khatian / parcha online', ref: 'Government service guide', text: 'Khatian obtained through online application 100 taka', route: '/tools/services' }], related: [], remaining: 7 };
