@@ -61,6 +61,14 @@ set role anon; set request.jwt.claim.sub='';
 select ok('pending listings are not public', (select count(*)=0 from lawyers_public));
 reset role;
 
+-- both applicants upload certificates (files live in their own folder)
+set role authenticated; set request.jwt.claim.sub=:A;
+update lawyer_profiles set certificate_paths=array[(:A)::text || '/cert1.jpg'];
+reset role;
+set role authenticated; set request.jwt.claim.sub=:B;
+update lawyer_profiles set certificate_paths=array[(:B)::text || '/cert1.jpg'];
+reset role;
+
 -- admin verifies A
 set role authenticated; set request.jwt.claim.sub=:AD;
 select ok('admin sees all applications', (select count(*)=2 from lawyer_profiles));
@@ -73,14 +81,14 @@ reset role;
 -- public view: anon sees A but not contact details
 set role anon; set request.jwt.claim.sub='';
 select ok('anon sees the verified lawyer', (select count(*)=1 from lawyers_public));
-select must_fail('anon can not read phone', 'select phone from lawyers_public');
-select must_fail('anon can not read email', 'select email from lawyers_public');
-select must_fail('anon can not read office address', 'select office_address from lawyers_public');
+select must_fail('phone is not in the public view at all (anon)', 'select phone from lawyers_public');
+select must_fail('email is not in the public view at all (anon)', 'select email from lawyers_public');
+select ok('office address is public', (select office_address like '12 Court%' from lawyers_public));
 select ok('anon can read name and areas', (select full_name='Ayesha Rahman' and practice_areas=array['land-law','family-law'] from lawyers_public));
 select must_fail('anon can not read status or review note', 'select status from lawyers_public');
 reset role;
 set role authenticated; set request.jwt.claim.sub=:B;
-select ok('signed-in user sees contact details', (select phone='01700000001' and office_address like '12 Court%' from lawyers_public));
+select must_fail('even a signed-in user can not read the phone from the view', 'select phone from lawyers_public');
 select must_fail('view has no status column', 'select status from lawyers_public');
 reset role;
 

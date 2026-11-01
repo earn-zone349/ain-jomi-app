@@ -18,4 +18,9 @@ psql -d "$DB" -f behaviour.sql
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase5_lawyers.sql >/dev/null
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase5_lawyers.sql >/dev/null
 echo "phase5 applied twice: OK"
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase5_lawyers_v2.sql >/dev/null
+psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase5_lawyers_v2.sql >/dev/null
+echo "phase5 v2 applied twice: OK"
+if psql -q -v ON_ERROR_STOP=1 -d "$DB" -f ../../supabase/phase5_lawyers.sql >/dev/null 2>&1; then echo "FAIL  old phase5 file ran again after v2"; else echo "PASS  old phase5 file refuses to run after v2"; fi
 psql -d "$DB" -f lawyers.sql
+psql -d "$DB" -f lawyers_v2.sql

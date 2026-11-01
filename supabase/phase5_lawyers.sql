@@ -12,6 +12,16 @@
 --     do not allow advocates to advertise or to pay for client referrals.
 -- =====================================================================
 
+-- Safety: once phase5_lawyers_v2.sql has been run, this older file must NOT be run again (it would put the
+-- old, weaker rules and the old public view back). The script stops here in that case.
+do $$
+begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'lawyer_profiles' and column_name = 'certificate_paths') then
+    raise exception 'phase5_lawyers_v2.sql was already applied. Do not run phase5_lawyers.sql again.';
+  end if;
+end $$;
+
 create table if not exists public.lawyer_profiles (
   id               uuid primary key default gen_random_uuid(),
   user_id          uuid not null unique default auth.uid() references auth.users(id) on delete cascade,

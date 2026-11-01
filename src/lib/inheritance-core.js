@@ -18,6 +18,7 @@ export const BASIS_IDS = [
   'SA_37', 'SA_38', 'SA_39', 'SA_40', 'SA_33_35_a', 'SA_33_35_b', 'SA_33_35_c', 'SA_34', 'SA_42', 'SA_43', 'SA_44', 'SA_45', 'SA_46', 'SA_47', 'SA_48',
   'MU_husband', 'MU_husband_desc', 'MU_wife', 'MU_wife_desc', 'MU_mother', 'MU_mother_desc', 'MU_mother_umar', 'MU_father_desc', 'MU_father_residue',
   'MU_father_res', 'MU_daughter_one', 'MU_daughters', 'MU_residue_children', 'MFLO_4',
+  'HI_son', 'HI_stirpes', 'HI_widow', 'HI_pw', 'HI_pw_gs',
 ];
 export const BASIS_SUFFIXES = ['+awl', '+radd'];
 
@@ -162,6 +163,8 @@ export function muslimSuccession(input) {
   if (spouse === 'wives' && (!Number.isInteger(wives) || wives < 1 || wives > 4)) fail('bad_input');
   checkTree(children);
   for (const n of walk(children)) if (n.sex !== 'M' && n.sex !== 'F') fail('bad_input');
+  // MFLO s.4 names only "the children of such son or daughter": a grandchild who died leaving heirs of his own is outside the written rule.
+  for (const c of children) for (const g of c.children || []) if (!g.alive && (g.children || []).some(hasLiving)) fail('unsupported_heirs');
 
   // MFLO s.4: a predeceased child with living descendants stands in the child's place.
   const lines = children.filter(hasLiving);
@@ -246,6 +249,71 @@ export function muslimSuccession(input) {
     else if (key === 'sonsPool') shares.push(...splitByWeight(lines.map((n) => ({ node: n, w: n.sex === 'M' ? 2 : 1 })), e.f, e.basis));
   }
   return seal(shares);
+}
+
+/* ------------------------------------------------------------------ Hindu (Dayabhaga) and Buddhist: narrow, sourced scope */
+
+/**
+ * Hindu law (Dayabhaga school) as applied in Bangladesh is NOT codified. This module answers only the one situation
+ * whose rule is written in a statute, and refuses everything else instead of guessing:
+ *
+ *   the deceased male left at least one SON LINE (a living son, or a dead son who left a living male descendant or a widow),
+ *   and may also have left a widow (or widows).
+ *
+ * Rules used (Hindu Women's Rights to Property Act 1937, s.3(1), Dayabhag school):
+ *  - the widow, or all widows together, takes "the same share as a son";
+ *  - each son line is one share; a dead son's share passes down his own line, one share per living son (or per dead son
+ *    who left a living male descendant or a widow), equally (the per stirpes rule of Dayabhaga, as in the usual worked examples);
+ *  - the widow of a predeceased son takes "like a son" when no son of his survives, and "like a son's son" when a son
+ *    or son's son of his survives; the same applies, mutatis mutandis, to the widow of a predeceased son of a predeceased son.
+ * Not covered, and refused: no son line at all, several widows of a predeceased son, any heir outside this list as the
+ * only claimant. A widow's interest is a limited "Hindu Woman's estate" (s.3(3)); this is reported as a note.
+ *
+ * input: { widows: 'none'|'one'|'many', sons: [{ id, alive, widow?: 'none'|'one'|'many', children: [...] }], otherHeirs?: boolean }
+ */
+export function hinduSuccession(input) {
+  const { widows = 'none', sons = [], otherHeirs = false } = input;
+  if (!['none', 'one', 'many'].includes(widows)) fail('bad_input');
+  checkSons(sons);
+  const hasHeir = (n) => n.alive || (n.widow || 'none') === 'one' || (n.children || []).some(hasHeir);
+  const lines = sons.filter(hasHeir);
+  if (!lines.length) fail('no_son_line');
+
+  const shares = [];
+  const hasWidows = widows !== 'none';
+  const unit = ONE.div(F(lines.length + (hasWidows ? 1 : 0)));
+  if (hasWidows) shares.push({ id: 'widows', fraction: unit, basis: 'HI_widow' });
+
+  const give = (node, amount, top) => {
+    if (node.alive) return void shares.push({ id: node.id, fraction: amount, basis: top ? 'HI_son' : 'HI_stirpes' });
+    const kids = (node.children || []).filter(hasHeir);
+    const widowShare = (node.widow || 'none') === 'one';
+    const parts = kids.length + (widowShare ? 1 : 0);
+    const each = amount.div(F(parts));
+    if (widowShare) shares.push({ id: `${node.id}:widow`, fraction: each, basis: kids.length ? 'HI_pw_gs' : 'HI_pw' });
+    for (const k of kids) give(k, each, false);
+  };
+  for (const l of lines) give(l, unit, true);
+
+  const out = seal(shares);
+  out.notes = [];
+  if (shares.some((x) => x.id === 'widows' || x.id.endsWith(':widow'))) out.notes.push('hi_limited_estate');
+  if (widows === 'many') out.notes.push('hi_widows_together');
+  if (otherHeirs) out.notes.push('hi_other_heirs');
+  return out;
+}
+
+function checkSons(nodes, depth = 0) {
+  if (!Array.isArray(nodes)) fail('bad_input');
+  if (depth > 6) fail('too_deep');
+  for (const n of nodes) {
+    if (!n || typeof n.id !== 'string' || typeof n.alive !== 'boolean') fail('bad_input');
+    const w = n.widow || 'none';
+    if (!['none', 'one', 'many'].includes(w)) fail('bad_input');
+    if (n.alive && ((n.children && n.children.length) || w !== 'none')) fail('alive_with_children');
+    if (!n.alive && w === 'many') fail('multi_widow');
+    checkSons(n.children || [], depth + 1);
+  }
 }
 
 function* walk(nodes) {

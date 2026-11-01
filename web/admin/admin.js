@@ -124,6 +124,7 @@ async function viewDashboard() {
     ['Notices published', count('notices', (q) => q.eq('status', 'published')), '#/t/notices'],
     ['Open reports', count('reports', (q) => q.eq('status', 'open')), '#/reports'],
   ];
+  if (isAdmin()) items.push(['Payments awaiting check', count('lawyer_payments', (q) => q.eq('status', 'pending')), '#/payments']);
   if (isAdmin()) items.push(['Lawyers awaiting check', count('lawyer_profiles', (q) => q.eq('status', 'pending')), '#/lawyers']);
   if (isAdmin()) items.push(['Errors (7 days)', count('error_logs', (q) => q.gte('created_at', since)), '#/errors']);
   for (const [label, p, href] of items) {
@@ -331,10 +332,22 @@ async function viewLawyers(query) {
       ['Phone', r.phone],
       ['Email', r.email || '—'],
       ['Qualifications', r.qualifications || '—'],
+      ['Education', r.education || '—'],
+      ['Practising since', r.practising_since || '—'],
+      ['Cases handled / won (self-declared)', `${r.cases_handled ?? '—'} / ${r.cases_won ?? '—'}`],
+      ['Achievements', r.achievements || '—'],
       ['Public consent', r.consent_public ? 'yes' : 'no'],
       ['Review note', r.review_note || '—'],
     ];
     card.appendChild(h('dl', { class: 'facts' }, rows.map(([k, v]) => h('div', { class: 'fact' }, h('dt', null, k), h('dd', null, String(v))))));
+    const certs = r.certificate_paths || [];
+    const certRow = h('div', { class: 'adm-actions' });
+    certs.forEach((path, i) => certRow.appendChild(btn(`Open certificate ${i + 1}`, { onClick: async () => {
+      const { data: signed, error: e2 } = await supabase.storage.from('lawyer-certs').createSignedUrl(path, 300);
+      if (e2 || !signed) alert('Could not open the file: ' + friendlyError(e2 || new Error('no link')));
+      else window.open(signed.signedUrl, '_blank', 'noopener');
+    } })));
+    card.appendChild(certs.length ? certRow : notice('No certificate uploaded. This application can not be verified.', 'error'));
     const actions = h('div', { class: 'adm-actions' });
     const apply = (next, needReason) => async (e) => {
       let note = null;
@@ -344,16 +357,100 @@ async function viewLawyers(query) {
       }
       await busy(e.currentTarget, async () => {
         const patch = { status: next, review_note: note };
-        const { error: err } = await supabase.from('lawyer_profiles').update(patch).eq('id', r.id);
+        const { data: saved, error: err } = await supabase.from('lawyer_profiles').update(patch).eq('id', r.id).select('id,status');
         if (err) alert(String(err.code) === '23505' ? 'Another verified lawyer already has this Bar association and enrolment number.' : friendlyError(err));
-        else card.remove();
+        else if (!saved || saved.length !== 1 || saved[0].status !== next) alert('NOT SAVED. The database did not change this application. Check that you are logged in as admin (role = admin), then reload and try again.');
+        else go(`/lawyers?status=${status}&done=${Date.now()}`);
       });
     };
-    if (status !== 'verified') actions.appendChild(btn('Verify / যাচাই', { variant: 'primary', onClick: apply('verified', false) }));
+    if (status !== 'verified' && certs.length) actions.appendChild(btn('Verify / যাচাই', { variant: 'primary', onClick: apply('verified', false) }));
     if (status === 'pending') actions.appendChild(btn('Reject', { onClick: apply('rejected', true) }));
     if (status === 'verified') actions.appendChild(btn('Suspend', { onClick: apply('suspended', true) }));
     if (status === 'rejected' || status === 'suspended') actions.appendChild(btn('Back to pending', { onClick: apply('pending', false) }));
     card.appendChild(actions);
+    wrap.appendChild(card);
+  }
+  return wrap;
+}
+
+async function viewPayments(query) {
+  if (!isAdmin()) return notice('Admins only.', 'error');
+  const wrap = h('div', { class: 'stack' });
+  const status = ['pending', 'approved', 'rejected'].includes(query.get('status')) ? query.get('status') : 'pending';
+  const sel = h('select', { class: 'input', 'aria-label': 'Status filter', onchange: () => go(`/payments?status=${sel.value}`) }, ['pending', 'approved', 'rejected'].map((s) => h('option', { value: s }, s)));
+  sel.value = status;
+  wrap.appendChild(h('div', { class: 'adm-head' }, h('h2', null, 'Payments · পেমেন্ট'), sel));
+  wrap.appendChild(notice('Before approving, open your bKash app and find the transaction: the TrxID, the amount and the sender number below must all match. Approve only if they do. Rejecting needs a reason, which the user can see. An approved contact payment unlocks that lawyer\'s phone and email for that user; an approved rating payment lets that user rate once.', 'info'));
+  const { data, error } = await supabase.from('lawyer_payments').select('*').eq('status', status).order('created_at', { ascending: true }).limit(200);
+  if (error) return notice(friendlyError(error), 'error');
+  if (!data.length) {
+    wrap.appendChild(h('p', { class: 'muted' }, `No ${status} payments.`));
+    return wrap;
+  }
+  for (const r of data) {
+    const card = h('div', { class: 'card stack' });
+    card.appendChild(h('h3', null, `${r.kind === 'contact' ? 'Phone & email' : 'Rating'} · ৳${r.amount_bdt} · ${r.lawyer_name || '(lawyer removed)'}`));
+    card.appendChild(h('dl', { class: 'facts' }, [
+      ['TrxID', r.trx_id], ['Sender bKash number', r.sender_number], ['Amount', `৳${r.amount_bdt}`],
+      ['Sent', fmtDate(r.created_at)], ['User', short(r.user_id) || '(account deleted)'],
+      ['Decision', r.reviewed_at ? `${fmtDate(r.reviewed_at)} by ${short(r.reviewed_by)}` : '—'], ['Note', r.review_note || '—'],
+    ].map(([k, v]) => h('div', { class: 'fact' }, h('dt', null, k), h('dd', null, String(v))))));
+    if (status === 'pending') {
+      const actions = h('div', { class: 'adm-actions' });
+      const decide = (next) => async (e) => {
+        let note = null;
+        if (next === 'rejected') {
+          note = (window.prompt('Reason for rejecting (the user will see this):') || '').trim();
+          if (note.length < 3) { alert('A reason is required.'); return; }
+        } else if (!confirm(`Approve ৳${r.amount_bdt} from ${r.sender_number}, TrxID ${r.trx_id}? Only do this if you have seen it in bKash.`)) return;
+        await busy(e.currentTarget, async () => {
+          const { data: saved, error: err } = await supabase.from('lawyer_payments').update({ status: next, review_note: note }).eq('id', r.id).select('id,status');
+          if (err) alert(friendlyError(err));
+          else if (!saved || saved.length !== 1 || saved[0].status !== next) alert('NOT SAVED. The database did not change this payment. Check that you are logged in as admin, then reload.');
+          else go(`/payments?status=${status}&done=${Date.now()}`);
+        });
+      };
+      actions.appendChild(btn('Approve (seen in bKash)', { variant: 'primary', onClick: decide('approved') }));
+      actions.appendChild(btn('Reject', { onClick: decide('rejected') }));
+      card.appendChild(actions);
+    }
+    wrap.appendChild(card);
+  }
+  return wrap;
+}
+
+async function viewRatings(query) {
+  if (!isAdmin()) return notice('Admins only.', 'error');
+  const wrap = h('div', { class: 'stack' });
+  const status = query.get('status') === 'hidden' ? 'hidden' : 'visible';
+  const sel = h('select', { class: 'input', 'aria-label': 'Status filter', onchange: () => go(`/ratings?status=${sel.value}`) }, ['visible', 'hidden'].map((s) => h('option', { value: s }, s)));
+  sel.value = status;
+  wrap.appendChild(h('div', { class: 'adm-head' }, h('h2', null, 'Ratings · রেটিং'), sel));
+  wrap.appendChild(notice('Hide a rating that is abusive, false, or clearly written by the lawyer or their friends. The stars and text can not be edited, only hidden or shown again. A hidden rating leaves the public list and the average.', 'info'));
+  const [{ data, error }, { data: lawyers }] = await Promise.all([
+    supabase.from('lawyer_ratings').select('*').eq('status', status).order('created_at', { ascending: false }).limit(200),
+    supabase.from('lawyer_profiles').select('id,full_name'),
+  ]);
+  if (error) return notice(friendlyError(error), 'error');
+  const names = Object.fromEntries((lawyers || []).map((l) => [l.id, l.full_name]));
+  if (!data.length) {
+    wrap.appendChild(h('p', { class: 'muted' }, `No ${status} ratings.`));
+    return wrap;
+  }
+  for (const r of data) {
+    const card = h('div', { class: 'card stack' });
+    card.appendChild(h('h3', null, `${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)} · ${names[r.lawyer_id] || '(lawyer removed)'}`));
+    card.appendChild(h('p', null, r.comment || '(no comment)'));
+    card.appendChild(h('p', { class: 'small muted' }, `${fmtDate(r.created_at)} · by user ${short(r.user_id) || '(account deleted)'}`));
+    const next = status === 'visible' ? 'hidden' : 'visible';
+    card.appendChild(h('div', { class: 'adm-actions' }, btn(status === 'visible' ? 'Hide' : 'Show again', { onClick: async (e) => {
+      await busy(e.currentTarget, async () => {
+        const { data: saved, error: err } = await supabase.from('lawyer_ratings').update({ status: next }).eq('id', r.id).select('id,status');
+        if (err) alert(friendlyError(err));
+        else if (!saved || saved.length !== 1 || saved[0].status !== next) alert('NOT SAVED. Check that you are logged in as admin, then reload.');
+        else card.remove();
+      });
+    } })));
     wrap.appendChild(card);
   }
   return wrap;
@@ -416,6 +513,7 @@ async function viewSettings() {
   const maint = cur.maintenance_mode || { enabled: false, message_bn: '', message_en: '' };
   const flags = cur.feature_flags || {};
   const contact = cur.contact || { email: '' };
+  const pricing = cur.lawyer_pricing || { contact_fee: 50, rating_fee: 2500, bkash_number: '', note_bn: '', note_en: '' };
 
   const wrap = h('div', { class: 'stack' }, h('div', { class: 'adm-head' }, h('h2', null, 'App settings · সেটিংস')));
   const form = h('form', { class: 'card form', novalidate: true });
@@ -430,6 +528,11 @@ async function viewSettings() {
   // land_calculator ships inside the app and is always on, so it has no switch here.
   const flagChecks = flagKeys.map((k) => check(`flag-${k}`, `Feature on: ${k}`, flags[k] === true));
   const email = text('contact-email', 'Support email', contact.email);
+  const feeContact = text('fee-contact', 'Fee to see a lawyer\'s phone and email (BDT)', pricing.contact_fee);
+  const feeRating = text('fee-rating', 'Fee to rate a lawyer (BDT)', pricing.rating_fee);
+  const bkash = text('bkash-number', 'Your bKash number that users send money to', pricing.bkash_number, 'Users are told to use Send Money to this number. Nothing is shown to users until this is filled in.');
+  const noteBn = text('pay-note-bn', 'Payment note (বাংলা), for example the refund rule', pricing.note_bn);
+  const noteEn = text('pay-note-en', 'Payment note (English)', pricing.note_en);
   const msg = h('div');
   const save = btn('Save settings / সংরক্ষণ', { variant: 'primary', type: 'submit' });
   form.append(
@@ -442,6 +545,9 @@ async function viewSettings() {
     h('h3', null, 'Feature switches'),
     notice('A switch only shows a module if that module is already built into the installed app.', 'info'),
     ...flagChecks,
+    h('h3', null, 'Lawyer payments'),
+    notice('The database uses these fees. A changed fee applies to new payments only.', 'info'),
+    feeContact, feeRating, bkash, noteBn, noteEn,
     h('h3', null, 'Contact'),
     email,
     msg,
@@ -456,12 +562,24 @@ async function viewSettings() {
       msg.replaceChildren(notice('Minimum version must look like 0.1.0', 'error'));
       return;
     }
+    const fc = Number(feeContact.querySelector('input').value.trim());
+    const fr = Number(feeRating.querySelector('input').value.trim());
+    const bk = bkash.querySelector('input').value.trim().replace(/[\s-]/g, '');
+    if (!Number.isInteger(fc) || fc < 0 || fc > 100000 || !Number.isInteger(fr) || fr < 0 || fr > 100000) {
+      msg.replaceChildren(notice('Fees must be whole numbers between 0 and 100000.', 'error'));
+      return;
+    }
+    if (bk && !/^\+?[0-9]{6,15}$/.test(bk)) {
+      msg.replaceChildren(notice('The bKash number must be digits only (6 to 15), for example 01712345678.', 'error'));
+      return;
+    }
     const nextFlags = { ...flags };
     flagKeys.forEach((k) => (nextFlags[k] = form.querySelector(`#flag-${k}`).checked));
     const rows = [
       { key: 'maintenance_mode', value: { enabled: form.querySelector('#maint-on').checked, message_bn: maintBn.querySelector('input').value.trim(), message_en: maintEn.querySelector('input').value.trim() }, is_public: true },
       { key: 'min_app_version', value: ver, is_public: true },
       { key: 'feature_flags', value: nextFlags, is_public: true },
+      { key: 'lawyer_pricing', value: { contact_fee: fc, rating_fee: fr, bkash_number: bk, note_bn: noteBn.querySelector('input').value.trim().slice(0, 300), note_en: noteEn.querySelector('input').value.trim().slice(0, 300) }, is_public: true },
       { key: 'contact', value: { email: email.querySelector('input').value.trim() }, is_public: true },
     ];
     if (rows[0].value.enabled && !confirm('Maintenance mode will block EVERY user from the app. Continue?')) return;
@@ -553,6 +671,8 @@ const NAV = [
   { path: '/t/notices', label: 'Notices' },
   { path: '/reports', label: 'Reports' },
   { path: '/lawyers', label: 'Lawyers', admin: true },
+  { path: '/payments', label: 'Payments', admin: true },
+  { path: '/ratings', label: 'Ratings', admin: true },
   { path: '/t/legal_pages', label: 'Terms/Privacy', admin: true },
   { path: '/users', label: 'Users', admin: true },
   { path: '/settings', label: 'Settings', admin: true },
@@ -587,6 +707,8 @@ async function route() {
     }
     else if (a === 'reports') view = await viewReports(query);
     else if (a === 'lawyers') view = await viewLawyers(query);
+    else if (a === 'payments') view = await viewPayments(query);
+    else if (a === 'ratings') view = await viewRatings(query);
     else if (a === 'users') view = await viewUsers();
     else if (a === 'settings') view = await viewSettings();
     else if (a === 'audit') view = await viewAudit(query);

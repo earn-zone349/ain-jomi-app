@@ -6,7 +6,7 @@ import { icon } from '../ui/icons.js';
 import { banner, button, badge, externalLink } from '../ui/components.js';
 import { t, getLang } from '../i18n/index.js';
 import { RULE_STATUS, RELIGIONS, isLive } from '../lib/inheritance-status.js';
-import { christianSuccession, muslimSuccession, shareAmount, InheritanceError } from '../lib/inheritance-core.js';
+import { christianSuccession, muslimSuccession, hinduSuccession, shareAmount, InheritanceError } from '../lib/inheritance-core.js';
 
 const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
 const digits = (s) => (getLang() === 'bn' ? String(s).replace(/[0-9]/g, (d) => BN_DIGITS[Number(d)]) : String(s));
@@ -19,6 +19,7 @@ export default function render() {
   const state = {
     religion: null,
     spouseAlive: false,
+    widows: 'none',
     spouse: 'none',
     wives: 1,
     fatherAlive: false,
@@ -53,14 +54,14 @@ export default function render() {
   };
 
   /* ---------- descendant tree editor ---------- */
-  function treeEditor(nodes, depth, prefix, withSex) {
+  function treeEditor(nodes, depth, prefix, withSex, opts = {}) {
     const box = h('div', { class: 'stack tree', dataset: { id: `tree-${prefix || 'root'}` } });
     nodes.forEach((node, i) => {
       const path = `${prefix}${i + 1}`;
       const row = h(
         'div',
         { class: 'card tree-node' },
-        h('p', { class: 'eyebrow' }, t('inh.child', { n: digits(path.split('.').join('.')) })),
+        h('p', { class: 'eyebrow' }, t(opts.childKey || 'inh.child', { n: digits(path) })),
         h(
           'div',
           { class: 'inline-fields' },
@@ -70,23 +71,28 @@ export default function render() {
         ),
       );
       if (!node.alive) {
-        row.appendChild(h('p', { class: 'muted small' }, t('inh.deadHint')));
-        if (depth < MAX_DEPTH) {
-          row.appendChild(treeEditor(node.children, depth + 1, `${path}.`, withSex));
-          if (node.children.length < MAX_PER_LEVEL) row.appendChild(button(t('inh.addChildOf', { n: digits(path) }), { variant: 'secondary', onClick: () => { node.children.push(newNode(withSex)); changed(); } }));
+        row.appendChild(h('p', { class: 'muted small' }, t(opts.withWidow ? 'inh.hi.sonsHint' : 'inh.deadHint')));
+        if (opts.withWidow) {
+          row.appendChild(h('label', { class: 'lc-label' }, t('inh.hi.widowOfDead'), select(['none', 'one', 'many'].map((v) => ({ value: v, label: t(`inh.hi.widowOfDead.${v}`) })), node.widow || 'none', (v) => { node.widow = v; changed(); }, t('inh.hi.widowOfDead'), `widow-${path}`)));
+        }
+        if (depth < (opts.maxDepth || MAX_DEPTH)) {
+          row.appendChild(treeEditor(node.children, depth + 1, `${path}.`, withSex, opts));
+          if (node.children.length < MAX_PER_LEVEL) row.appendChild(button(t(opts.addKey || 'inh.addChildOf', { n: digits(path) }), { variant: 'secondary', onClick: () => { node.children.push(newNode(withSex, opts.withWidow)); changed(); } }));
         }
       }
       box.appendChild(row);
     });
     return box;
   }
-  const newNode = (withSex) => ({ alive: true, sex: withSex ? 'M' : undefined, children: [] });
+  const newNode = (withSex, withWidow) => ({ alive: true, sex: withSex ? 'M' : undefined, ...(withWidow ? { widow: 'none' } : {}), children: [] });
 
-  const toEngine = (nodes, prefix, labels, withSex) =>
+  const toEngine = (nodes, prefix, labels, withSex, withWidow) =>
     nodes.map((n, i) => {
       const path = `${prefix}${i + 1}`;
-      labels[`c${path}`] = t('inh.child', { n: digits(path) });
-      return { id: `c${path}`, alive: n.alive, sex: withSex ? n.sex : undefined, children: n.alive ? [] : toEngine(n.children, `${path}.`, labels, withSex) };
+      labels[`c${path}`] = t(withWidow ? 'inh.hi.who.son' : 'inh.child', { n: digits(path) });
+      const o = { id: `c${path}`, alive: n.alive, sex: withSex ? n.sex : undefined, children: n.alive ? [] : toEngine(n.children, `${path}.`, labels, withSex, withWidow) };
+      if (withWidow) o.widow = n.alive ? 'none' : n.widow || 'none';
+      return o;
     });
   const hasLiving = (nodes) => nodes.some((n) => n.alive || hasLiving(n.children));
 
@@ -148,12 +154,25 @@ export default function render() {
       check(t('inh.motherAlive'), state.motherAlive, (v) => { state.motherAlive = v; changed(); }, 'mother'),
       h('h3', { class: 'section-title' }, t('inh.children')),
       h('p', { class: 'muted small' }, t('inh.childrenHintMuslim')),
-      treeEditor(state.children, 1, '', true),
+      treeEditor(state.children, 1, '', true, { maxDepth: 2 }),
       state.children.length < MAX_PER_LEVEL ? button(t('inh.addChild'), { variant: 'secondary', onClick: () => { state.children.push(newNode(true)); changed(); } }) : null,
       check(t('inh.otherHeirs'), state.other, (v) => { state.other = v; changed(); }, 'other'),
     ];
   }
 
+  const HI_OPTS = { withWidow: true, childKey: 'inh.hi.son', addKey: 'inh.hi.addSonOf' };
+  function hinduForm() {
+    return [
+      h('div', { class: 'card' }, h('label', { class: 'lc-label' }, t('inh.hi.widows'), select(['none', 'one', 'many'].map((v) => ({ value: v, label: t(`inh.hi.widows.${v}`) })), state.widows, (v) => { state.widows = v; changed(); }, t('inh.hi.widows'), 'widows'))),
+      h('h3', { class: 'section-title' }, t('inh.hi.sons')),
+      h('p', { class: 'muted small' }, t('inh.hi.sonsHint')),
+      treeEditor(state.children, 1, '', false, HI_OPTS),
+      state.children.length < MAX_PER_LEVEL ? button(t('inh.hi.addSon'), { variant: 'secondary', onClick: () => { state.children.push(newNode(false, true)); changed(); } }) : null,
+      check(t('inh.hi.other'), state.other, (v) => { state.other = v; changed(); }, 'other'),
+    ];
+  }
+
+  const NOTE_KEY = { christian: 'inh.christianNote', muslim: 'inh.muslimNote', hindu: 'inh.hinduNote', buddhist: 'inh.buddhistNote' };
   function paintForm() {
     clear(formHost);
     if (!state.religion) return paintChooser();
@@ -162,8 +181,9 @@ export default function render() {
       h('div', { class: 'row-between' }, h('strong', null, t(`inh.religion.${r}`)), button(t('inh.change'), { variant: 'ghost', onClick: () => { state.religion = null; state.calculated = false; paintForm(); paintResult(); } })),
     );
     if (RULE_STATUS[r].status === 'pending_review') formHost.appendChild(banner(t('inh.previewBanner'), { tone: 'warning', iconName: 'alert' }));
-    formHost.appendChild(banner(t(r === 'christian' ? 'inh.christianNote' : 'inh.muslimNote'), { tone: 'info', iconName: 'info' }));
-    formHost.append(...(r === 'christian' ? christianForm() : muslimForm()));
+    if (RULE_STATUS[r].legalBasisUnconfirmed) formHost.appendChild(banner(t('inh.buddhistWarn'), { tone: 'warning', iconName: 'alert' }));
+    formHost.appendChild(banner(t(NOTE_KEY[r]), { tone: 'info', iconName: 'info' }));
+    formHost.append(...(r === 'christian' ? christianForm() : r === 'muslim' ? muslimForm() : hinduForm()));
     formHost.appendChild(h('div', { class: 'card' }, h('label', { class: 'lc-label' }, t('inh.estate'), estateInput), h('p', { class: 'muted small' }, t('inh.estateHint'))));
     formHost.appendChild(button(t('inh.calc'), { variant: 'primary', block: true, onClick: () => { state.calculated = true; paintResult(); resultHost.scrollIntoView?.({ block: 'start' }); } }));
   }
@@ -177,7 +197,7 @@ export default function render() {
       formHost.appendChild(
         h(
           usable ? 'button' : 'div',
-          { class: `module${usable ? ' module-live' : ''}`, type: usable ? 'button' : undefined, dataset: { religion: r }, onclick: usable ? () => { state.religion = r; state.calculated = false; paintForm(); paintResult(); } : undefined },
+          { class: `module${usable ? ' module-live' : ''}`, type: usable ? 'button' : undefined, dataset: { religion: r }, onclick: usable ? () => { Object.assign(state, { religion: r, spouseAlive: false, spouse: 'none', wives: 1, widows: 'none', fatherAlive: false, motherAlive: false, children: [], siblings: [], kin: 0, other: false, noKin: false, calculated: false }); paintForm(); paintResult(); } : undefined },
           h('span', { class: 'module-icon' }, icon('family')),
           h('span', { class: 'module-text' }, h('strong', null, t(`inh.religion.${r}`)), h('span', { class: 'muted small' }, t(`inh.status.${st}.desc`))),
           badge(t(`inh.status.${st}`), tone),
@@ -190,6 +210,9 @@ export default function render() {
   /* ---------- result ---------- */
   function labelFor(id, labels) {
     if (labels[id]) return labels[id];
+    if (id === 'widows') return t('inh.hi.who.widows');
+    const wm = /^c([\d.]+):widow$/.exec(id);
+    if (wm) return t('inh.hi.who.widowOf', { n: digits(wm[1]) });
     if (id === 'spouse') return state.religion === 'muslim' ? t('inh.who.husband') : t('inh.who.spouse');
     if (id.startsWith('wife:')) return t('inh.who.wife', { n: digits(id.split(':')[1]) });
     if (id === 'father' || id === 'mother' || id === 'government') return t(`inh.who.${id}`);
@@ -215,6 +238,9 @@ export default function render() {
           nearestKindred: { count: state.kin },
         }),
       };
+    }
+    if (state.religion === 'hindu' || state.religion === 'buddhist') {
+      return { labels, res: hinduSuccession({ widows: state.widows, sons: toEngine(state.children, '', labels, false, true), otherHeirs: state.other }) };
     }
     return {
       labels,
@@ -261,6 +287,7 @@ export default function render() {
     );
     const bases = [...new Set(res.shares.map((s) => s.basis))];
     resultHost.appendChild(h('div', { class: 'card' }, h('p', { class: 'eyebrow' }, t('inh.basisTitle')), h('ul', { class: 'plain-list' }, bases.map((b) => h('li', null, basisText(b))))));
+    for (const n of res.notes || []) resultHost.appendChild(banner(t(`inh.note.${n}`), { tone: 'info', iconName: 'info' }));
     const info = RULE_STATUS[state.religion];
     resultHost.appendChild(
       h(
@@ -273,6 +300,12 @@ export default function render() {
         info.checkedOn ? ` (${t('inh.checked')}: ${digits(info.checkedOn)})` : '',
       ),
     );
+    if (info.sources?.length) {
+      resultHost.appendChild(
+        h('div', { class: 'card', dataset: { id: 'inh-sources' } }, h('p', { class: 'eyebrow' }, t('inh.sources')),
+          h('ul', { class: 'plain-list' }, info.sources.map((x) => h('li', null, badge(t(`inh.kind.${x.kind}`), x.kind === 'official' ? 'success' : 'neutral'), ' ', x.url ? externalLink(x.url, x.label) : x.label)))),
+      );
+    }
   }
 
   root.append(formHost, resultHost, h('p', { class: 'fineprint' }, icon('info', 'icon-inline'), t('inh.disclaimer')));

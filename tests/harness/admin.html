@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>admin harness</title>
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/components.css" />
+    <link rel="stylesheet" href="/web/admin/admin.css" />
+    <script type="importmap">
+      { "imports": { "@supabase/supabase-js": "/tests/harness/fake-supabase.js" } }
+    </script>
+  </head>
+  <body class="admin-body">
+    <div id="admin"><p class="boot">Loading…</p></div>
+    <script type="module" src="/web/admin/admin.js"></script>
+  </body>
+</html>

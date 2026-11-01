@@ -19,13 +19,46 @@ export const RULE_STATUS = {
   },
   muslim: {
     status: 'pending_review',
-    law: 'Sunni (Hanafi) law of inheritance as applied in Bangladesh; Muslim Family Laws Ordinance 1961, s.4',
-    url: null,
-    checkedOn: null,
+    law: 'Sunni (Hanafi) law of inheritance as applied in Bangladesh (Quran 4:11-12), with the Muslim Family Laws Ordinance 1961, s.4 (orphaned grandchildren)',
+    url: 'https://bdlaws.minlaw.gov.bd/act-print-305.html',
+    checkedOn: '2026-11-01',
     reviewedBy: null,
+    scope: 'spouse_parents_children',
+    sources: [
+      { id: 'mflo', label: 'The Muslim Family Laws Ordinance, 1961 (Ordinance VIII of 1961), section 4 (official text, bdlaws)', url: 'https://bdlaws.minlaw.gov.bd/act-print-305.html', kind: 'official' },
+      { id: 'q', label: 'Quran 4:11 and 4:12 (Sahih International): children, parents, husband and wife shares', url: 'https://legacy.quran.com/4/11-23', kind: 'scripture' },
+      { id: 'ar', label: 'Awl and Radd: Adjustments in Islamic Inheritance (Hanafi: spouses get no radd)', url: 'https://islam.wiki/articles/awl-and-radd-inheritance', kind: 'reference' },
+      { id: 'um', label: 'The Umari issue of inheritance (spouse and both parents: mother takes a third of the remainder)', url: 'https://old.islamic-content.com/dictionary/word/12008/en', kind: 'reference' },
+    ],
   },
-  hindu: { status: 'unavailable', law: 'Dayabhaga school; Hindu Women\'s Right to Property Act 1937; Hindu Law of Inheritance (Amendment) Act 1929', url: null, checkedOn: null, reviewedBy: null },
-  buddhist: { status: 'unavailable', law: null, url: null, checkedOn: null, reviewedBy: null },
+  hindu: {
+    status: 'pending_review',
+    law: 'The Hindu Women\'s Rights to Property Act, 1937 (Act No. XVIII of 1937), ss.2-3, with the Dayabhaga school of Hindu law (not codified)',
+    url: 'https://bhumipedia.land.gov.bd/uploads/PDF/Act/The_Hindu_Womens_Rights_to_Property_Act_1937.pdf',
+    checkedOn: '2026-11-01',
+    reviewedBy: null,
+    // Honest limits of the check, shown on screen.
+    scope: 'son_line_only',
+    sources: [
+      { id: 'act', label: 'Hindu Women\'s Rights to Property Act 1937 (Ministry of Land copy)', url: 'https://bhumipedia.land.gov.bd/uploads/PDF/Act/The_Hindu_Womens_Rights_to_Property_Act_1937.pdf', kind: 'official' },
+      { id: 'sc', label: 'Appellate Division, Shishubar Dhali v. Chitta Ranjan Mondol, Civil Appeal 55 of 2003, 11 Dec 2022 (Dayabhaga principles)', url: 'https://advocatetanmoy.com/dayabhaga-school-of-law-which-prevails-in-bangladesh-is-the-doctrine-of-religious-efficacy-scb-11-12-2022/', kind: 'reference' },
+      { id: 'dt', label: 'Dhaka Tribune, 4 June 2024 (Hindu women and inheritance)', url: 'https://www.dhakatribune.com/opinion/op-ed/348363/empowering-inheritance-the-legal-of-hindu-women-s', kind: 'news' },
+      { id: 'lh', label: 'Law Help BD, Hindu law of inheritance in Bangladesh (worked examples)', url: 'https://lawhelpbd.com/civil-law/personal-law/hindu-law/hindu-law-of-inheritance-in-bangladesh/', kind: 'reference' },
+    ],
+  },
+  buddhist: {
+    status: 'pending_review',
+    law: 'Buddhists in Bangladesh are reported to follow Hindu law (Dayabhaga) for inheritance; no statute or judgment confirming this was found in the sources checked',
+    url: 'https://www.dhakatribune.com/bangladesh/court/224033/govt-served-legal-notice-for-law-on-hindu-and',
+    checkedOn: '2026-11-01',
+    reviewedBy: null,
+    scope: 'son_line_only',
+    legalBasisUnconfirmed: true,
+    sources: [
+      { id: 'dt20', label: 'Dhaka Tribune, 22 Sep 2020: "The Buddhist community also follows the Hindu law for personal matters in Bangladesh"', url: 'https://www.dhakatribune.com/bangladesh/court/224033/govt-served-legal-notice-for-law-on-hindu-and', kind: 'news' },
+      { id: 'pa20', label: 'Prothom Alo English, 22 Sep 2020 (legal notice on Hindu and Buddhist women\'s inheritance)', url: 'https://en.prothomalo.com/bangladesh/legal-notice-seeks-hindu-buddhist-womens-right-to-inherit-property', kind: 'news' },
+    ],
+  },
 };
 
 export const RELIGIONS = ['christian', 'muslim', 'hindu', 'buddhist'];

@@ -18,7 +18,7 @@ Ain Jomi gives general legal information in simple language. It is not legal adv
 - We are not a government body and are not connected to any government office unless the app clearly says so.$aj$, 1, 'published'),
   ('terms', $aj$ব্যবহারের শর্তাবলি$aj$, $aj$Terms of Use$aj$, $aj$ব্যবহারের শর্তাবলি
 
-কার্যকর: ২২ অক্টোবর ২০২৬
+কার্যকর: ৩১ অক্টোবর ২০২৬
 
 # ১. এই শর্তাবলি সম্পর্কে
 আইন জমি ব্যবহার করলে আপনি এই শর্তগুলো মেনে নিচ্ছেন। রাজি না হলে অনুগ্রহ করে অ্যাপ ব্যবহার করবেন না।
@@ -41,6 +41,10 @@ Ain Jomi gives general legal information in simple language. It is not legal adv
 # ৭. অন্যদের সেবা
 সরকারি ওয়েবসাইট ও অন্যান্য সেবার লিংক সুবিধার জন্য দেওয়া হয়। এগুলো আমাদের নিয়ন্ত্রণে নেই এবং এদের কনটেন্ট বা প্রাপ্যতার দায় আমাদের নয়।
 
+আইনজীবী তালিকায় সেই আইনজীবীদের নাম থাকে, যাঁদের এনরোলমেন্টের তথ্য ও সনদ অ্যাডমিন হাতে যাচাই করেছেন। তালিকাভুক্তি আমাদের বা বার কাউন্সিলের সুপারিশ বা অনুমোদন নয়, এবং কোনো আইনজীবীর তথ্য হালনাগাদ আছে কি না তার নিশ্চয়তা আমরা দিতে পারি না। মামলার সংখ্যা ও অর্জন আইনজীবীর নিজের দেওয়া তথ্য, আমরা তা যাচাই করি না। আপনার ও আইনজীবীর মধ্যকার কোনো ব্যবস্থার পক্ষ অ্যাপ নয় এবং অ্যাপ কোনো আইনি সেবা দেয় না। আবেদনকারী আইনজীবীকে সঠিক তথ্য ও আসল সনদ দিতে হবে, এবং এই শর্ত বা পেশার নিয়ম ভাঙলে আমরা তালিকা স্থগিত বা সরাতে পারব বলে তিনি সম্মত হন।
+
+ফি: কোনো আইনজীবীর ফোন নম্বর ও ইমেইল দেখতে প্রতি আইনজীবীর জন্য একটি যোগাযোগ ফি লাগে, এবং রেটিং দিতে একবার রেটিং ফি লাগে। পেমেন্টের আগে অ্যাপে বর্তমান ফি দেখানো হয়। আপনি bKash Send Money-তে টাকা পাঠান, এবং অ্যাডমিন পেমেন্ট মিলিয়ে দেখার পর তা অনুমোদন হয়। পেমেন্ট শুধু তার নির্দিষ্ট কাজটুকুই খুলে দেয়। অ্যাপে পেমেন্টের নোটে অন্য কিছু না লেখা থাকলে ফি ফেরত দেওয়া হয় না। রেটিং প্রকাশ্য, অপমানজনক বা মিথ্যা হলে লুকিয়ে ফেলা হতে পারে, এবং যাঁর সঙ্গে আপনার কাজ হয়নি তাঁকে রেটিং দেওয়া যাবে না।
+
 # ৮. দায়ের সীমা
 আইন যতটা অনুমতি দেয়, অ্যাপের তথ্য বা টুলের ওপর নির্ভর করে কোনো ক্ষতি হলে আইন জমি ও এর দল দায়ী থাকবে না। বাংলাদেশের আইনে আপনার যে অধিকার সীমিত করা যায় না, এই শর্তাবলি তা সীমিত করে না।
 
@@ -53,7 +57,7 @@ Ain Jomi gives general legal information in simple language. It is not legal adv
 # ১১. যোগাযোগ
 এই শর্তাবলি নিয়ে প্রশ্ন: অ্যাপে দেওয়া যোগাযোগের ঠিকানা$aj$, $aj$Terms of Use
 
-Effective: 22 October 2026
+Effective: 31 October 2026
 
 # 1. About these terms
 By using Ain Jomi you agree to these terms. If you do not agree, please do not use the app.
@@ -76,6 +80,10 @@ The text of laws is public. The explanations, translations, design, software and
 # 7. Services from others
 Links to government websites and other services are provided for convenience. We do not control them and are not responsible for their content or availability.
 
+The lawyer directory lists advocates whose enrolment details and certificates an admin has checked by hand. A listing is not an endorsement or recommendation by us or by the Bar Council, and we cannot guarantee that an advocate's details are current. Numbers of cases and achievements are stated by the advocate and are not checked by us. The app is not a party to any arrangement between you and an advocate and gives no legal service. Advocates who apply must give accurate details and genuine certificates, and agree that we may suspend or remove a listing that breaks these terms or the rules of their profession.
+
+Fees: seeing an advocate's phone number and email costs a contact fee for each advocate, and giving a rating costs a rating fee, paid once. The current fees are shown in the app before you pay. You pay by bKash Send Money, and an admin checks the payment before it is approved. A payment unlocks only what it was made for. Fees are not refunded unless the payment note in the app says otherwise. Ratings are public, may be hidden if they are abusive or false, and you must not rate an advocate you have not dealt with.
+
 # 8. Limitation of liability
 To the extent allowed by law, Ain Jomi and its team are not liable for any loss caused by relying on the information or tools in the app. Nothing in these terms limits any right you have under the laws of Bangladesh that cannot be limited.
 
@@ -89,7 +97,7 @@ These terms are governed by the laws of Bangladesh.
 Questions about these terms: the support contact shown in the app$aj$, 1, 'published'),
   ('privacy', $aj$গোপনীয়তা নীতি$aj$, $aj$Privacy Policy$aj$, $aj$গোপনীয়তা নীতি
 
-কার্যকর: ২২ অক্টোবর ২০২৬
+কার্যকর: ৩১ অক্টোবর ২০২৬
 
 # ১. আমরা কারা
 আইন জমি ("আমরা") একটি মোবাইল অ্যাপ, যা সাধারণ আইনি তথ্য দেয়। যোগাযোগ: অ্যাপে দেওয়া যোগাযোগের ঠিকানা
@@ -98,6 +106,9 @@ Questions about these terms: the support contact shown in the app$aj$, 1, 'publi
 - অ্যাকাউন্টের তথ্য, শুধু আপনি অ্যাকাউন্ট খুললে: ইমেইল ঠিকানা, ঐচ্ছিক নাম, এবং পাসওয়ার্ড (আমাদের অথেনটিকেশন সেবাদাতা শুধু হ্যাশ আকারে রাখে)।
 - আপনার ডিভাইসের সেটিংস: ভাষা, থিম, লেখার আকার ইত্যাদি। এগুলো আপনার ডিভাইসেই থাকে।
 - আপনার পাঠানো রিপোর্ট: আপনি যা লিখেছেন এবং যে বিষয়ে রিপোর্ট করেছেন, আপনার অ্যাকাউন্টের সঙ্গে যুক্ত।
+- আইনজীবী তালিকার আবেদন, শুধু আপনি আইনজীবী হয়ে তালিকাভুক্তির আবেদন করলে: নাম, এনরোলমেন্ট নম্বর, সাল, বার অ্যাসোসিয়েশন, আদালত, আইনের ক্ষেত্র, জেলা, অফিসের ঠিকানা, ফোন নম্বর, ঐচ্ছিক ইমেইল, যোগ্যতা, শিক্ষা, কোন সাল থেকে প্র্যাকটিস করছেন, আপনার দেওয়া মামলার সংখ্যা ও অর্জন, আপনার আপলোড করা সনদের ফাইল, এবং আপনার সম্মতি। অ্যাডমিন যাচাই করার আগে এবং প্রত্যাহারের পর কিছুই প্রকাশ্য থাকে না। যাচাইয়ের পর ফোন নম্বর ও ইমেইল ছাড়া বাকি সবকিছু, সনদসহ, সবার কাছে দেখানো হয়। আপনার ফোন নম্বর ও ইমেইল দেখেন শুধু সেই ব্যবহারকারী, যিনি আপনার তালিকার জন্য যোগাযোগ ফি দিয়েছেন।
+- পেমেন্ট, শুধু আপনি ফোন নম্বর দেখতে বা আইনজীবীকে রেটিং দিতে টাকা দিলে: আপনার bKash নম্বর, bKash Transaction ID, পরিমাণ, সংশ্লিষ্ট আইনজীবী এবং সময়। অ্যাডমিন bKash-এ পেমেন্ট মিলিয়ে দেখতে এগুলো ব্যবহার করেন। হিসাবের জন্য পেমেন্টের রেকর্ড আপনার অ্যাকাউন্ট মোছার পরও পরিচয় ছাড়া রাখা হয়।
+- আপনার দেওয়া রেটিং: তারা ও মন্তব্য আপনার নাম ছাড়া প্রকাশ্যে দেখানো হয়।
 - প্রযুক্তিগত এরর রিপোর্ট: অ্যাপে ত্রুটি হলে এরর বার্তা, অ্যাপ সংস্করণ ও ডিভাইসের প্ল্যাটফর্ম পাঠানো হতে পারে। এতে আপনার নাম, ইমেইল বা আপনি কী পড়ছেন তা থাকে না।
 
 আমরা আপনার অবস্থান, কন্টাক্ট, ছবি বা মেসেজ সংগ্রহ করি না। আমরা বিজ্ঞাপনের ট্র্যাকার ব্যবহার করি না।
@@ -114,6 +125,7 @@ Questions about these terms: the support contact shown in the app$aj$, 1, 'publi
 # ৬. আপনার পছন্দ ও অধিকার
 - অ্যাকাউন্ট ছাড়াই আপনি অ্যাপের বেশিরভাগ অংশ ব্যবহার করতে পারবেন।
 - সেটিংসের "অ্যাকাউন্ট" অংশ থেকে যেকোনো সময় অ্যাকাউন্ট ও তার তথ্য মুছে ফেলতে পারবেন।
+- আইনজীবী হিসেবে আবেদন করে থাকলে অ্যাপ থেকে যেকোনো সময় আবেদন বদলাতে বা প্রত্যাহার করতে পারবেন; প্রত্যাহার করলে আবেদন মুছে যায় এবং তালিকা থেকেও সরে যায়।
 - সেটিংস থেকে ডিভাইসের অফলাইন ডেটা মুছতে পারবেন।
 - তথ্য সংশোধন বা মুছে ফেলতে চাইলে অ্যাপে দেওয়া যোগাযোগের ঠিকানা ঠিকানায় লিখুন।
 
@@ -129,7 +141,7 @@ Questions about these terms: the support contact shown in the app$aj$, 1, 'publi
 # ১০. যোগাযোগ
 অ্যাপে দেওয়া যোগাযোগের ঠিকানা$aj$, $aj$Privacy Policy
 
-Effective: 22 October 2026
+Effective: 31 October 2026
 
 # 1. Who we are
 Ain Jomi ("we") is a mobile app that gives general legal information. Contact: the support contact shown in the app
@@ -138,6 +150,9 @@ Ain Jomi ("we") is a mobile app that gives general legal information. Contact: t
 - Account data, only if you create an account: your email address, an optional name, and your password (stored only in hashed form by our authentication provider).
 - Settings on your device: language, theme, text size and similar choices. These stay on your device.
 - Reports you send: the text you write and the item you reported, linked to your account.
+- Lawyer listing application, only if you are an advocate and apply to be listed: your name, enrolment number, year, Bar association, courts, areas of law, district, office address, phone number, optional email, qualifications, education, year you started practising, the numbers of cases and achievements you state, the certificate files you upload, and your consent. Until an admin has verified it, and after you withdraw, nothing is public. After verification, everything except your phone number and email is shown to everyone, including your certificates. Your phone number and email are shown only to a user who has paid the contact fee for your listing.
+- Payments, only if you pay to see a phone number or to rate an advocate: your bKash number, the bKash transaction ID, the amount, the advocate concerned and the time. An admin uses these to check the payment in bKash. We keep payment records for accounting even after you delete your account, with your identity removed.
+- Ratings you give: the stars and your comment are shown publicly without your name.
 - Technical error reports: when the app hits an error it may send the error message, app version and device platform. These reports do not include your name, email or the content you read.
 
 We do not collect your location, contacts, photos or messages. We do not use advertising trackers.
@@ -154,6 +169,7 @@ Account data is kept until you delete your account. Error reports are deleted af
 # 6. Your choices and rights
 - You can use most of the app without an account.
 - You can delete your account and its data at any time in Settings, under Account.
+- If you applied to be listed as a lawyer, you can change or withdraw your application at any time in the app; withdrawing deletes it and removes the listing.
 - You can clear the offline data on your device in Settings.
 - You can ask us to correct or remove your data by writing to the support contact shown in the app.
 

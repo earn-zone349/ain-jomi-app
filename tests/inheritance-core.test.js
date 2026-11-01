@@ -177,3 +177,83 @@ test('every basis the engine returns is a declared id', async () => {
     }
   }
 });
+
+/* ---------------- Hindu (Dayabhaga) / Buddhist: narrow scope ---------------- */
+import { hinduSuccession } from '../src/lib/inheritance-core.js';
+
+const fr = (res) => Object.fromEntries(res.shares.map((s) => [s.id, s.fraction.toString()]));
+const son = (id, alive = true, extra = {}) => ({ id, alive, children: [], ...extra });
+
+test('Hindu: two sons and two widows -> 1/3, 1/3 and the widows together 1/3 (s.3(1): widows take a son\'s share)', () => {
+  const r = hinduSuccession({ widows: 'many', sons: [son('c1'), son('c2')] });
+  assert.deepEqual(fr(r), { widows: '1/3', c1: '1/3', c2: '1/3' });
+  assert.ok(r.notes.includes('hi_limited_estate') && r.notes.includes('hi_widows_together'));
+});
+
+test('Hindu: worked example from the literature, sons C and D and grandsons B1, B2 of a dead son B -> 1/3, 1/3, 1/6, 1/6', () => {
+  const r = hinduSuccession({ widows: 'none', sons: [son('B', false, { children: [son('B1'), son('B2')] }), son('C'), son('D')] });
+  assert.deepEqual(fr(r), { B1: '1/6', B2: '1/6', C: '1/3', D: '1/3' });
+});
+
+test('Hindu: worked example, sons B, C and widows D, E -> 1/3, 1/3 and 1/3 for the widows together', () => {
+  const r = hinduSuccession({ widows: 'many', sons: [son('B'), son('C')] });
+  assert.deepEqual(fr(r), { widows: '1/3', B: '1/3', C: '1/3' });
+});
+
+test('Hindu: widow of a predeceased son with NO surviving son of his takes like a son (s.3(1) proviso)', () => {
+  const r = hinduSuccession({ widows: 'none', sons: [son('A'), son('B', false, { widow: 'one' })] });
+  assert.deepEqual(fr(r), { A: '1/2', 'B:widow': '1/2' });
+  assert.equal(r.shares.find((s) => s.id === 'B:widow').basis, 'HI_pw');
+});
+
+test('Hindu: widow of a predeceased son WITH a surviving son of his takes like a son\'s son (equal to each of his sons)', () => {
+  const r = hinduSuccession({ widows: 'one', sons: [son('B', false, { widow: 'one', children: [son('B1'), son('B2')] })] });
+  // two shares: the deceased's widow 1/2, son line B 1/2 -> B1, B2 and B's widow 1/6 each
+  assert.deepEqual(fr(r), { widows: '1/2', B1: '1/6', B2: '1/6', 'B:widow': '1/6' });
+  assert.equal(r.shares.find((s) => s.id === 'B:widow').basis, 'HI_pw_gs');
+});
+
+test('Hindu: same rule one generation down (widow of a predeceased son of a predeceased son)', () => {
+  const r = hinduSuccession({ widows: 'none', sons: [son('A', false, { children: [son('A1', false, { widow: 'one' }), son('A2')] })] });
+  assert.deepEqual(fr(r), { 'A1:widow': '1/2', A2: '1/2' });
+});
+
+test('Hindu: a dead son with no living male descendant and no widow is not counted', () => {
+  const r = hinduSuccession({ widows: 'one', sons: [son('A'), son('B', false)] });
+  assert.deepEqual(fr(r), { widows: '1/2', A: '1/2' });
+});
+
+test('Hindu: shares always add up to exactly 1 (many shapes)', () => {
+  const shapes = [
+    { widows: 'one', sons: [son('a'), son('b'), son('c', false, { children: [son('c1'), son('c2', false, { children: [son('c21'), son('c22'), son('c23')] })] })] },
+    { widows: 'none', sons: [son('a', false, { widow: 'one', children: [son('a1'), son('a2'), son('a3')] }), son('b')] },
+    { widows: 'many', sons: [son('a'), son('b'), son('c'), son('d'), son('e'), son('f'), son('g')] },
+  ];
+  for (const sh of shapes) {
+    const r = hinduSuccession(sh);
+    const total = r.shares.reduce((a, s) => a.add(s.fraction), new Fraction(0n, 1n));
+    assert.equal(total.toString(), '1');
+  }
+});
+
+test('Hindu: the app refuses what the statute does not decide (no guessing)', () => {
+  assert.throws(() => hinduSuccession({ widows: 'one', sons: [] }), (e) => e.code === 'no_son_line');
+  assert.throws(() => hinduSuccession({ widows: 'none', sons: [son('a', false)] }), (e) => e.code === 'no_son_line');
+  assert.throws(() => hinduSuccession({ widows: 'none', sons: [son('a', false, { widow: 'many' })] }), (e) => e.code === 'multi_widow');
+  assert.throws(() => hinduSuccession({ widows: 'none', sons: [son('a', true, { children: [son('x')] })] }), (e) => e.code === 'alive_with_children');
+  assert.throws(() => hinduSuccession({ widows: 'maybe', sons: [son('a')] }), (e) => e.code === 'bad_input');
+});
+
+test('Hindu: other heirs only add a note, they never change the shares', () => {
+  const a = hinduSuccession({ widows: 'one', sons: [son('a')] });
+  const b = hinduSuccession({ widows: 'one', sons: [son('a')], otherHeirs: true });
+  assert.deepEqual(fr(a), fr(b));
+  assert.ok(b.notes.includes('hi_other_heirs') && !a.notes.includes('hi_other_heirs'));
+});
+
+test('Muslim: a grandchild who died leaving heirs is outside MFLO s.4 and is refused', () => {
+  const tree = [{ id: 's', alive: false, sex: 'M', children: [{ id: 'gs', alive: false, sex: 'M', children: [{ id: 'ggs', alive: true, sex: 'M', children: [] }] }] }];
+  let code = null;
+  try { muslimSuccession({ children: tree }); } catch (e) { code = e.code; }
+  assert.equal(code, 'unsupported_heirs');
+});

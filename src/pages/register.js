@@ -16,7 +16,9 @@ export default function render({ navigate, query }) {
   const confirm = field({ id: 'confirm', label: t('auth.confirmPassword'), type: 'password', autocomplete: 'new-password', required: true });
   const formError = h('p', { class: 'field-error form-error', role: 'alert', hidden: true });
   const submit = button(t('auth.register'), { variant: 'primary', type: 'submit', block: true });
+  const isLawyer = next.startsWith('/tools/lawyers/apply');
   const holder = h('div');
+  if (isLawyer) holder.appendChild(banner(t('lawyers.regStep'), { tone: 'info', iconName: 'info' }));
 
   const form = h(
     'form',
@@ -53,7 +55,7 @@ export default function render({ navigate, query }) {
           return;
         }
         if (res.needsConfirmation) {
-          holder.replaceChildren(banner(t('auth.checkEmail'), { tone: 'success', iconName: 'mail' }));
+          holder.replaceChildren(banner(t('auth.checkEmail'), { tone: 'success', iconName: 'mail' }), ...(isLawyer ? [banner(t('lawyers.regAfterConfirm'), { tone: 'info', iconName: 'info' })] : []));
           form.hidden = true;
           return;
         }

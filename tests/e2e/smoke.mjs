@@ -307,9 +307,9 @@ await page.locator('.tab[data-tab="tools"]').click();
 await page.locator('.module-live').nth(1).click();
 await page.waitForSelector('[data-religion]');
 check('religion list shows 4 religions', (await page.locator('[data-religion]').count()) === 4);
-check('Christian and Muslim are usable; Hindu/Buddhist are not', (await page.locator('button[data-religion]').count()) === 2 && (await page.locator('div[data-religion]').count()) === 2);
+check('all 4 religions are usable', (await page.locator('button[data-religion]').count()) === 4 && (await page.locator('div[data-religion]').count()) === 0);
 const chooser = await text('.page');
-check('Muslim is marked not yet reviewed; Hindu/Buddhist unavailable', chooser.includes('Not yet reviewed') && chooser.includes('Not available'), chooser.slice(0, 300));
+check('Muslim/Hindu/Buddhist are marked not yet reviewed', (chooser.match(/Not yet reviewed/g) || []).length >= 3, chooser.slice(0, 300));
 await page.locator('button[data-religion="christian"]').click();
 await page.locator('[data-id="spouse"]').check();
 await page.locator('button', { hasText: 'Add a child' }).click();
@@ -352,9 +352,34 @@ await page.locator('button', { hasText: 'Calculate' }).click();
 await page.waitForSelector('[data-id="inh-result"]');
 facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
 check('Muslim: wife 1/8 + son 7/8', facts.includes('1/8') && facts.includes('7/8'), facts);
+check('Muslim: 4 sources listed incl. Quran and official MFLO', (await page.locator('[data-id="inh-sources"] a').count()) === 4 && (await text('[data-id="inh-sources"]')).includes('Scripture') && (await text('[data-id="inh-sources"]')).includes('Official'));
 await page.locator('input[data-id="other"]').check();
 await page.waitForTimeout(100);
 check('other heirs: app refuses to guess', (await text('.page')).includes('no result'), await text('.page'));
+
+// Hindu: 2 sons + 2 widows together = 1/3 each; dead son with 2 sons; refusal with no son line; Buddhist warning
+await page.locator('button', { hasText: 'Change religion' }).click();
+await page.waitForSelector('button[data-religion="hindu"]');
+await page.locator('button[data-religion="hindu"]').click();
+check('Hindu: review warning + uncodified note', (await text('.page')).includes('No scholar or lawyer has reviewed') && (await text('.page')).includes('not codified'));
+await page.locator('button', { hasText: 'Calculate' }).click();
+check('Hindu: no son line is refused', (await text('.page')).includes('There is no son line'), await text('.page'));
+await page.locator('button', { hasText: 'Add a son' }).click();
+await page.locator('button', { hasText: 'Add a son' }).click();
+await page.locator('select[data-id="widows"]').selectOption('many');
+await page.waitForTimeout(100);
+facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
+check('Hindu: 2 sons + widows: 1/3 each, total 1', (facts.match(/1\/3/g) || []).length === 3 && facts.includes('Total 1'), facts);
+const hn = await text('.page');
+check('Hindu: limited-estate and widows-together notes + sources shown', hn.includes('limited interest') && hn.includes('one share together') && (await page.locator('[data-id="inh-sources"] a').count()) === 4, hn.slice(-600));
+await page.locator('select[data-id="state-1"]').selectOption('dead');
+await page.locator('select[data-id="widow-1"]').selectOption('one');
+await page.waitForTimeout(100);
+facts = (await text('[data-id="inh-result"]')).replace(/\s+/g, ' ');
+check('Hindu: dead son\'s widow takes his share like a son', facts.includes('Widow of son 1') && (facts.match(/1\/3/g) || []).length === 3, facts);
+await page.locator('button', { hasText: 'Change religion' }).click();
+await page.locator('button[data-religion="buddhist"]').click();
+check('Buddhist: legal basis not confirmed warning', (await text('.page')).includes('legal basis here is not confirmed'));
 await page.locator('.tab[data-tab="home"]').click();
 
 // 11d. government service guides (offline, bundled data)
@@ -376,7 +401,7 @@ check('legal aid shows 16430 as a phone link and does not claim it is free', (aw
 await shot('15-services');
 await page.locator('.tab[data-tab="home"]').click();
 
-// 11e. lawyer directory (flag-gated, no contact details for guests)
+// 11e. lawyer directory (flag-gated; public list; paid contact + paid rating; one-page advocate sign-up)
 await page.locator('.tab[data-tab="tools"]').click();
 check('lawyers card is not live while the flag is off', (await page.locator('.module-live', { hasText: 'Verified lawyers' }).count()) === 0);
 await page.evaluate(() => { __fake.setSetting('feature_flags', { lawyers: true }); window.dispatchEvent(new Event('online')); });
@@ -394,18 +419,109 @@ check('search by enrolment number works', (await page.locator('[data-lawyer]').c
 await page.locator('[data-id="lawyer-q"]').fill('nobody-here');
 check('no match shows a message', (await text('.page')).includes('Nobody matches'));
 await page.locator('[data-id="lawyer-q"]').fill('');
+
+// guest: everything but the phone is visible; no account needed to look
 await page.locator('[data-lawyer="lw1"] summary').click();
-check('guest sees no contact details, only a login prompt', (await page.locator('[data-lawyer="lw1"] [data-id="contact"]').count()) === 0 && (await text('[data-lawyer="lw1"]')).includes('Log in to see') && !(await text('[data-lawyer="lw1"]')).includes('01700000001'));
-await page.locator('[data-lawyer="lw1"] .btn-primary', { hasText: 'Log in' }).click();
-await page.waitForSelector('#email');
-await page.fill('#email', 'rakib@example.com');
-await page.fill('#password', 'secret123');
-await page.locator('.btn-primary', { hasText: 'Log in' }).click();
+const g = (await text('[data-lawyer="lw1"]')).replace(/\s+/g, ' ');
+check('guest sees education, experience, office address', g.includes('LL.B (Dhaka University)') && g.includes('2015') && g.includes('12 Court Road, Dhaka'), g);
+check('guest sees cases and the "stated by the advocate" notice', g.includes('200') && g.includes('120') && g.includes('stated by the advocate'));
+check('guest does NOT see the phone or email', !g.includes('01700000001') && !g.includes('ayesha@example.com'));
+check('guest is asked to log in or create an account to pay', g.includes('Log in or create an account to pay'));
+check('the fee is shown from the settings (50)', g.includes('50 fee'), g);
+await page.locator('[data-lawyer="lw1"] .btn', { hasText: 'View certificates' }).click();
+await page.waitForSelector('.dialog a.link');
+check('certificate opens through a temporary https link', await page.evaluate(() => [...document.querySelectorAll('.dialog a.link')].every((a) => a.href.startsWith('https://') && a.rel.includes('noopener'))));
+await page.locator('.dialog .btn', { hasText: 'Close' }).click();
+
+// advocate sign-up on ONE page: account + details + certificate file
+await page.evaluate(() => { location.hash = '#/tools/lawyers/apply'; });
+await page.waitForSelector('[data-id="apply-form"]');
+check('one page has account fields and advocate fields', (await page.locator('#email').count()) === 1 && (await page.locator('#ap-enrol').count()) === 1 && (await page.locator('#ap-edu').count()) === 1 && (await page.locator('[data-id="cert-input"]').count()) === 1);
+await page.locator('[data-id="apply-form"] button[type="submit"]').click();
+check('empty form is refused with field errors', (await page.locator('[data-id="apply-form"] .field-error:not([hidden])').count()) >= 6);
+await page.fill('#email', 'newlawyer@example.com');
+await page.fill('#password', 'lawyerpass1');
+await page.fill('#confirm', 'lawyerpass1');
+await page.fill('#ap-name', 'Nadia Karim');
+await page.fill('#ap-enrol', 'DBA-777');
+await page.fill('#ap-bar', 'Dhaka Bar');
+await page.locator('input[name="court"]').first().check();
+await page.locator('input[name="area"]').first().check();
+await page.selectOption('#ap-district', 'dhaka');
+await page.fill('#ap-address', '3 Test Road, Dhaka');
+await page.fill('#ap-phone', '01711111111');
+await page.fill('#ap-edu', 'LL.B (Dhaka University)');
+await page.fill('#ap-since', '2012');
+await page.fill('#ap-handled', '100');
+await page.fill('#ap-won', '150');
+await page.locator('#ap-consent').check();
+await page.locator('[data-id="apply-form"] button[type="submit"]').click();
+check('won more than handled is refused', (await text('[data-id="apply-form"]')).includes('more than cases handled'));
+await page.fill('#ap-won', '60');
+await page.locator('[data-id="apply-form"] button[type="submit"]').click();
+check('a certificate file is required', (await text('[data-id="apply-form"]')).includes('This is required'));
+await page.locator('[data-id="cert-input"]').setInputFiles({ name: 'bad.txt', mimeType: 'text/plain', buffer: Buffer.from('hello') });
+check('wrong file type is refused', (await text('[data-id="apply-form"]')).includes('Only JPG, PNG or PDF'));
+await page.locator('[data-id="cert-input"]').setInputFiles({ name: 'huge.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(3 * 1024 * 1024 + 10) });
+check('file over 3 MB is refused', (await text('[data-id="apply-form"]')).includes('larger than 3 MB'));
+await page.locator('[data-id="cert-input"]').setInputFiles({ name: 'enrolment.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 test') });
+check('good file is listed as new', (await text('[data-id="certs"]')).includes('enrolment.pdf'));
+await page.locator('[data-id="apply-form"] button[type="submit"]').click();
+await page.waitForSelector('[data-id="apply-status"]');
+check('account created and application saved as pending', (await text('[data-id="apply-status"]')).includes('Waiting for check') && (await page.evaluate(() => __fake.db.lawyers.at(-1).status)) === 'pending' && (await page.evaluate(() => !!__fake.db.users['newlawyer@example.com'])));
+check('the certificate was uploaded into the advocate\'s own folder', await page.evaluate(() => { const l = __fake.db.lawyers.at(-1); return l.certificate_paths.length === 1 && l.certificate_paths[0].startsWith(`${l.user_id}/`) && Object.keys(__fake.db.files).length === 1; }));
+check('numbers saved as numbers', await page.evaluate(() => { const l = __fake.db.lawyers.at(-1); return l.cases_handled === 100 && l.cases_won === 60 && l.practising_since === 2012; }));
+
+// signed in now: pay for the phone number
+await page.evaluate(() => { location.hash = '#/tools/lawyers'; });
 await page.waitForSelector('[data-lawyer]');
+check('pending application is not public', (await page.locator('[data-lawyer]').count()) === 2 && !(await text('.page')).includes('Nadia Karim'));
 await page.locator('[data-lawyer="lw1"] summary').click();
-check('signed-in user sees contact details', (await text('[data-lawyer="lw1"] [data-id="contact"]')).includes('01700000001'));
-check('phone is a tel: link', (await page.locator('[data-lawyer="lw1"] a[href="tel:01700000001"]').count()) === 1);
-// report
+check('signed in but not paid: still no phone', !(await text('[data-lawyer="lw1"]')).includes('01700000001'));
+await page.locator('[data-lawyer="lw1"] .btn', { hasText: 'Show phone and email' }).click();
+await page.waitForSelector('#pay-trx');
+check('payment dialog shows amount and bKash number from settings', (await text('.dialog')).includes('50') && (await text('.dialog')).includes('01711111111') && (await text('.dialog')).includes('Send Money'));
+await page.fill('#pay-sender', '01922222222');
+await page.fill('#pay-trx', '12');
+await page.locator('.dialog .btn-primary').click();
+check('bad transaction id is refused', (await text('.dialog .field-error:not([hidden])')).includes('Wrong format'));
+await page.fill('#pay-trx', ' 9ab12cd34e ');
+await page.locator('.dialog .btn-primary').click();
+await page.waitForSelector('.toast');
+check('payment stored: amount from settings, pending, id cleaned', await page.evaluate(() => { const p = __fake.db.payments.at(-1); return p.amount_bdt === 50 && p.status === 'pending' && p.trx_id === '9AB12CD34E' && p.kind === 'contact' && p.lawyer_id === 'lw1'; }));
+check('pending payment: still no phone, message shown', !(await text('[data-lawyer="lw1"]')).includes('01700000001') && (await text('[data-lawyer="lw1"]')).includes('waiting for an admin check'));
+await page.evaluate(() => { __fake.db.payments.at(-1).status = 'approved'; });
+await page.locator('[data-lawyer="lw1"] [data-id="contact"] .btn', { hasText: 'Check again' }).click();
+await page.waitForSelector('[data-lawyer="lw1"] a[href="tel:01700000001"]');
+check('after approval the phone and email appear', (await text('[data-lawyer="lw1"] [data-id="contact"]')).includes('ayesha@example.com'));
+check('the other lawyer\'s phone is still hidden', !(await text('body')).includes('01800000002'));
+
+// rating
+check('no ratings yet, and the rating fee is shown', (await text('[data-lawyer="lw1"] [data-id="rating"]')).includes('No ratings yet') && (await text('[data-lawyer="lw1"] [data-id="rating"]')).includes('2500'));
+await page.locator('[data-lawyer="lw1"] [data-id="rating"] .btn', { hasText: 'Rate (' }).click();
+await page.waitForSelector('#pay-trx');
+await page.fill('#pay-sender', '01922222222');
+await page.fill('#pay-trx', 'RATE000001');
+await page.locator('.dialog .btn-primary').click();
+await page.waitForSelector('.toast');
+check('rating payment is 2500 and pending', await page.evaluate(() => { const p = __fake.db.payments.at(-1); return p.kind === 'rating' && p.amount_bdt === 2500 && p.status === 'pending'; }));
+check('cannot rate before approval', (await page.locator('[data-lawyer="lw1"] [data-id="rate-stars"]').count()) === 0);
+await page.evaluate(() => { __fake.db.payments.at(-1).status = 'approved'; });
+await page.locator('[data-lawyer="lw1"] [data-id="rating"] .btn', { hasText: 'Check again' }).click();
+await page.waitForSelector('[data-lawyer="lw1"] [data-id="rate-stars"]');
+await page.locator('[data-lawyer="lw1"] [data-id="rate-stars"]').selectOption('4');
+await page.fill('#rate-comment', 'Clear and helpful');
+await page.locator('[data-lawyer="lw1"] .btn', { hasText: 'Send rating' }).click();
+await page.waitForFunction(() => document.querySelector('[data-lawyer="lw1"] summary')?.textContent.includes('★'));
+check('rating saved and the average shows in the list', (await text('[data-lawyer="lw1"] summary')).includes('4.0') && (await page.evaluate(() => __fake.db.ratings.length)) === 1);
+await page.locator('[data-lawyer="lw1"] summary').click();
+check('rater can not rate twice', (await text('[data-lawyer="lw1"] [data-id="rating"]')).includes('You have rated this advocate'));
+await page.locator('[data-lawyer="lw1"] [data-id="rating"] .btn', { hasText: 'See ratings' }).click();
+await page.waitForSelector('[data-lawyer="lw1"] [data-id="rating-list"] .card');
+check('ratings list shows stars and comment but not who wrote it', (await text('[data-lawyer="lw1"] [data-id="rating-list"]')).includes('Clear and helpful') && !(await text('[data-lawyer="lw1"] [data-id="rating-list"]')).includes('newlawyer'));
+check('ordering is still alphabetical, not by rating', (await page.locator('[data-lawyer] .sec-heading').allInnerTexts()).join('|') === 'Ayesha Rahman|Bashir Ahmed');
+
+// report a listing
 await page.locator('[data-lawyer="lw1"] .btn', { hasText: 'Report this listing' }).click();
 await page.waitForSelector('.dialog textarea');
 await page.locator('.dialog .btn-primary').click();
@@ -415,37 +531,18 @@ await page.locator('.dialog .btn-primary').click();
 await page.waitForSelector('.toast');
 check('lawyer report stored with target_type lawyer', await page.evaluate(() => { const r = __fake.db.reports.at(-1); return r.target_type === 'lawyer' && r.target_id === 'lw1'; }));
 await shot('16-lawyers');
-// apply
-await page.evaluate(() => { location.hash = '#/tools/lawyers/apply'; });
-await page.waitForSelector('[data-id="apply-form"]');
-await page.locator('[data-id="apply-form"] button[type="submit"]').click();
-check('empty application is refused with field errors', (await page.locator('[data-id="apply-form"] .field-error:not([hidden])').count()) >= 4);
-await page.fill('#ap-name', 'Rakib Test');
-await page.fill('#ap-enrol', 'DBA-777');
-await page.fill('#ap-bar', 'Dhaka Bar');
-await page.locator('input[name="court"]').first().check();
-await page.locator('input[name="area"]').first().check();
-await page.selectOption('#ap-district', 'dhaka');
-await page.fill('#ap-address', '3 Test Road, Dhaka');
-await page.fill('#ap-phone', '01711111111');
-await page.locator('[data-id="apply-form"] button[type="submit"]').click();
-check('consent is required', (await text('[data-id="apply-form"]')).includes('This is required') && (await page.evaluate(() => __fake.db.lawyers.length)) === 3);
-await page.locator('#ap-consent').check();
-await page.locator('[data-id="apply-form"] button[type="submit"]').click();
-await page.waitForSelector('[data-id="apply-status"]');
-check('application is saved as pending', (await text('[data-id="apply-status"]')).includes('Waiting for check') && (await page.evaluate(() => __fake.db.lawyers.at(-1).status)) === 'pending');
-await page.evaluate(() => { location.hash = '#/tools/lawyers'; });
-await page.waitForSelector('[data-lawyer]');
-check('pending application is not public', (await page.locator('[data-lawyer]').count()) === 2 && !(await text('.page')).includes('Rakib Test'));
-// withdraw
+
+// edit, then withdraw: certificate files are deleted too
 await page.evaluate(() => { location.hash = '#/tools/lawyers/apply'; });
 await page.waitForSelector('[data-id="apply-status"]');
+check('signed in advocate sees the saved application, no account fields', (await page.locator('#confirm').count()) === 0 && (await page.inputValue('#ap-name')) === 'Nadia Karim');
 await page.locator('.btn', { hasText: 'Withdraw application' }).click();
 await page.waitForSelector('.dialog');
 await page.locator('.dialog .btn', { hasText: 'Withdraw application' }).click();
 await page.waitForFunction(() => !document.querySelector('.overlay'));
 await page.waitForTimeout(300);
-check('withdrawing deletes the application', (await page.evaluate(() => __fake.db.lawyers.length)) === 3);
+check('withdrawing deletes the application and its certificate files', (await page.evaluate(() => __fake.db.lawyers.length)) === 3 && (await page.evaluate(() => Object.keys(__fake.db.files).length)) === 0);
+
 // flag off again
 await page.evaluate(() => { __fake.setSetting('feature_flags', { lawyers: false }); window.dispatchEvent(new Event('online')); });
 await page.waitForTimeout(500);

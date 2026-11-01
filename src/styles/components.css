@@ -241,3 +241,4 @@ select.input { appearance: auto; }
 .tree-node { gap: 8px; }
 
 .stack-tight { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pre-line { white-space: pre-line; }

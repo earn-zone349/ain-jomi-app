@@ -24,14 +24,18 @@ const db = {
     min_app_version: '0.0.1',
     feature_flags: { land_calculator: false },
     contact: { email: '' },
+    lawyer_pricing: { contact_fee: 50, rating_fee: 2500, bkash_number: '01711111111', note_bn: '', note_en: 'Fees are not refunded.' },
   },
   reports: [{ id: 'r0', user_id: 'u-1', target_type: 'law', target_id: 'l1', message: 'Penalty text looks outdated', status: 'open', created_at: '2026-10-05T00:00:00Z' }],
   error_logs: [],
   lawyers: [
-    { id: 'lw1', user_id: 'u-L1', full_name: 'Ayesha Rahman', enrollment_no: 'DBA-1234', enrollment_year: 2015, bar_association: 'Dhaka Bar', courts: ['lower_courts', 'high_court_division'], practice_areas: ['land-law', 'family-law'], district: 'dhaka', office_address: '12 Court Road, Dhaka', phone: '01700000001', email: 'ayesha@example.com', qualifications: 'LL.B, LL.M', consent_public: true, status: 'verified', verified_at: '2026-10-10T00:00:00Z', review_note: null },
-    { id: 'lw2', user_id: 'u-L2', full_name: 'Bashir Ahmed', enrollment_no: '5678', enrollment_year: 2010, bar_association: 'Sylhet Bar', courts: ['lower_courts'], practice_areas: ['criminal-law'], district: 'sylhet', office_address: '5 Bar Lane, Sylhet', phone: '01800000002', email: null, qualifications: null, consent_public: true, status: 'verified', verified_at: '2026-10-11T00:00:00Z', review_note: null },
-    { id: 'lw3', user_id: 'u-L3', full_name: 'Pending Person', enrollment_no: '999', enrollment_year: null, bar_association: 'Dhaka Bar', courts: ['lower_courts'], practice_areas: ['land-law'], district: 'dhaka', office_address: '1 Hidden Road', phone: '01900000003', email: null, qualifications: null, consent_public: true, status: 'pending', verified_at: null, review_note: null },
+    { id: 'lw1', user_id: 'u-L1', full_name: 'Ayesha Rahman', enrollment_no: 'DBA-1234', enrollment_year: 2015, bar_association: 'Dhaka Bar', courts: ['lower_courts', 'high_court_division'], practice_areas: ['land-law', 'family-law'], district: 'dhaka', office_address: '12 Court Road, Dhaka', phone: '01700000001', email: 'ayesha@example.com', qualifications: 'LL.B, LL.M', education: 'LL.B (Dhaka University)', practising_since: 2015, cases_handled: 200, cases_won: 120, achievements: 'Best junior advocate 2018', certificate_paths: ['u-L1/llb.pdf'], consent_public: true, status: 'verified', verified_at: '2026-10-10T00:00:00Z', review_note: null },
+    { id: 'lw2', user_id: 'u-L2', full_name: 'Bashir Ahmed', enrollment_no: '5678', enrollment_year: 2010, bar_association: 'Sylhet Bar', courts: ['lower_courts'], practice_areas: ['criminal-law'], district: 'sylhet', office_address: '5 Bar Lane, Sylhet', phone: '01800000002', email: null, qualifications: null, education: null, practising_since: null, cases_handled: null, cases_won: null, achievements: null, certificate_paths: ['u-L2/cert.png'], consent_public: true, status: 'verified', verified_at: '2026-10-11T00:00:00Z', review_note: null },
+    { id: 'lw3', user_id: 'u-L3', full_name: 'Pending Person', enrollment_no: '999', enrollment_year: null, bar_association: 'Dhaka Bar', courts: ['lower_courts'], practice_areas: ['land-law'], district: 'dhaka', office_address: '1 Hidden Road', phone: '01900000003', email: null, certificate_paths: ['u-L3/x.pdf'], consent_public: true, status: 'pending', verified_at: null, review_note: null },
   ],
+  payments: [],
+  ratings: [],
+  files: {},
   profiles: {
     'u-1': { id: 'u-1', full_name: 'Rakib', role: 'user', preferred_lang: 'bn' },
     'u-admin': { id: 'u-admin', full_name: 'Admin', role: 'admin', preferred_lang: 'bn' },
@@ -143,15 +147,60 @@ class Query {
     }
 
     if (t === 'lawyers_public') {
-      const contact = ['phone', 'email', 'office_address'];
-      if (!db.session && contact.some((c) => (this.cols || '*').split(',').map((x) => x.trim()).includes(c) || this.cols === '*')) return { data: null, error: { code: '42501', message: 'permission denied for view lawyers_public' } };
+      const cols = (this.cols || '*').split(',').map((x) => x.trim());
+      if (cols.includes('*') || cols.includes('phone') || cols.includes('email')) return { data: null, error: { code: '42703', message: 'column lawyers_public.phone does not exist' } };
       const rows = db.lawyers.filter((r) => r.status === 'verified' && this.preds.every((f) => f(r))).map((r) => {
         const o = { ...r };
-        delete o.status; delete o.review_note; delete o.user_id; delete o.consent_public;
-        if (!db.session) contact.forEach((c) => delete o[c]);
+        delete o.status; delete o.review_note; delete o.user_id; delete o.consent_public; delete o.phone; delete o.email;
+        const vis = db.ratings.filter((x) => x.lawyer_id === r.id && x.status === 'visible');
+        o.rating_count = vis.length;
+        o.rating_avg = vis.length ? Math.round((vis.reduce((a, x) => a + x.stars, 0) / vis.length) * 10) / 10 : null;
         return o;
       });
       return this.finish(rows);
+    }
+
+    if (t === 'lawyer_ratings_public') {
+      return this.finish(db.ratings.filter((r) => r.status === 'visible' && this.preds.every((f) => f(r))).map((r) => ({ id: r.id, lawyer_id: r.lawyer_id, stars: r.stars, comment: r.comment, created_at: r.created_at })));
+    }
+
+    if (t === 'lawyer_ratings') {
+      if (!db.session) return denied('permission denied for table lawyer_ratings');
+      const me = db.session.user.id;
+      if (this.op === 'update') {
+        if (!isAdmin()) return { data: this.cols ? [] : null, error: null };
+        const hit = db.ratings.filter((r) => this.preds.every((f) => f(r)));
+        hit.forEach((r) => { if (this.payload.status) r.status = this.payload.status; });
+        return { data: this.cols ? hit.map((r) => ({ ...r })) : null, error: null };
+      }
+      return this.finish(db.ratings.filter((r) => (isAdmin() || r.user_id === me) && this.preds.every((f) => f(r))).map((r) => ({ ...r })));
+    }
+
+    if (t === 'lawyer_payments') {
+      if (!db.session) return denied('permission denied for table lawyer_payments');
+      const me = db.session.user.id;
+      if (this.op === 'insert') {
+        const row = [].concat(this.payload)[0];
+        const l = db.lawyers.find((x) => x.id === row.lawyer_id && x.status === 'verified');
+        if (!l) return { data: null, error: { code: '23514', message: 'This advocate is not listed' } };
+        if (l.user_id === me) return { data: null, error: { code: '23514', message: 'You can not pay for your own listing' } };
+        const trx = String(row.trx_id).replace(/\s/g, '').toUpperCase();
+        if (db.payments.some((p) => p.status !== 'rejected' && (p.trx_id === trx || (p.user_id === me && p.lawyer_id === row.lawyer_id && p.kind === row.kind)))) return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
+        const fee = db.settings.lawyer_pricing[row.kind === 'contact' ? 'contact_fee' : 'rating_fee'];
+        db.payments.push({ id: `py${db.payments.length + 1}`, user_id: me, lawyer_id: l.id, lawyer_name: l.full_name, kind: row.kind, amount_bdt: fee, method: 'bkash', sender_number: row.sender_number, trx_id: trx, status: 'pending', review_note: null, created_at: nowIso() });
+        return { data: null, error: null };
+      }
+      if (this.op === 'update') {
+        if (!isAdmin()) return { data: this.cols ? [] : null, error: null };
+        const hit = db.payments.filter((r) => this.preds.every((f) => f(r)));
+        for (const r of hit) {
+          if (r.status !== 'pending') return { data: null, error: { code: '23514', message: 'A decided payment can not be changed' } };
+          if (this.payload.status === 'rejected' && !String(this.payload.review_note || '').trim()) return { data: null, error: { code: '23514', message: 'A reason is required when rejecting a payment' } };
+          Object.assign(r, { status: this.payload.status, review_note: this.payload.review_note || null, reviewed_by: db.session.user.id, reviewed_at: nowIso() });
+        }
+        return { data: this.cols ? hit.map((r) => ({ ...r })) : null, error: null };
+      }
+      return this.finish(db.payments.filter((r) => (isAdmin() || r.user_id === me) && this.preds.every((f) => f(r))).map((r) => ({ ...r })));
     }
 
     if (t === 'lawyer_profiles') {
@@ -171,8 +220,9 @@ class Query {
           const changed = Object.keys(edit).some((k) => JSON.stringify(edit[k]) !== JSON.stringify(r[k]));
           Object.assign(r, edit);
           if (!isAdmin() && changed && (r.status === 'verified' || r.status === 'rejected')) Object.assign(r, { status: 'pending', verified_at: null, review_note: null });
+          if (isAdmin() && edit.status === 'verified') r.verified_at = nowIso();
         }
-        return { data: null, error: null };
+        return { data: this.cols ? mine.map((r) => ({ ...r })) : null, error: null };
       }
       if (this.op === 'delete') {
         db.lawyers = db.lawyers.filter((r) => !mine.includes(r));
@@ -246,7 +296,19 @@ const sessionFor = (email) => {
 export function createClient() {
   return {
     from: (table) => new Query(table),
-    rpc: async (name) => {
+    storage: {
+      from: (bucket) => ({
+        async upload(path, file) {
+          if (!db.session) return { error: { message: 'not signed in' } };
+          if (!path.startsWith(`${db.session.user.id}/`)) return { error: { code: '42501', message: 'new row violates row-level security policy' } };
+          db.files[`${bucket}/${path}`] = { size: file.size, type: file.type };
+          return { error: null };
+        },
+        async createSignedUrl(path) { return { data: { signedUrl: `https://files.example.test/${bucket}/${path}?token=t` }, error: null }; },
+        async remove(paths) { paths.forEach((p) => delete db.files[`${bucket}/${p}`]); return { error: null }; },
+      }),
+    },
+    rpc: async (name, args = {}) => {
       db.calls.push(`rpc:${name}`);
       if (!db.online) return { error: new Error('Failed to fetch') };
       if (name === 'delete_my_account') {
@@ -260,6 +322,27 @@ export function createClient() {
         return { data: Object.entries(db.users).map(([email, u]) => ({ id: u.id, email, full_name: u.full_name, role: db.profiles[u.id]?.role || 'user', created_at: '2026-10-01T00:00:00Z' })), error: null };
       }
       if (name === 'purge_old_error_logs') return { data: 0, error: null };
+      if (name === 'get_lawyer_contact') {
+        if (!db.session) return { data: null, error: { code: '28000', message: 'not signed in' } };
+        const me = db.session.user.id;
+        const l = db.lawyers.find((x) => x.id === args.p_lawyer && x.status === 'verified');
+        const paid = db.payments.some((p) => p.user_id === me && p.lawyer_id === args.p_lawyer && p.kind === 'contact' && p.status === 'approved');
+        if (!l || !(paid || isAdmin() || l.user_id === me)) return { data: null, error: { code: '42501', message: 'The contact fee has not been paid' } };
+        return { data: [{ phone: l.phone, email: l.email }], error: null };
+      }
+      if (name === 'submit_lawyer_rating') {
+        if (!db.session) return { data: null, error: { code: '28000', message: 'not signed in' } };
+        const me = db.session.user.id;
+        const l = db.lawyers.find((x) => x.id === args.p_lawyer && x.status === 'verified');
+        if (!l) return { data: null, error: { code: '23514', message: 'This advocate is not listed' } };
+        if (l.user_id === me) return { data: null, error: { code: '23514', message: 'You can not rate yourself' } };
+        const pay = db.payments.find((p) => p.user_id === me && p.lawyer_id === l.id && p.kind === 'rating' && p.status === 'approved');
+        if (!pay) return { data: null, error: { code: '42501', message: 'An approved rating payment is required' } };
+        if (db.ratings.some((r) => r.lawyer_id === l.id && r.user_id === me)) return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
+        const row = { id: `rt${db.ratings.length + 1}`, lawyer_id: l.id, user_id: me, stars: args.p_stars, comment: args.p_comment || null, status: 'visible', created_at: nowIso() };
+        db.ratings.push(row);
+        return { data: row.id, error: null };
+      }
       return { error: { message: `unknown rpc ${name}` } };
     },
     auth: {

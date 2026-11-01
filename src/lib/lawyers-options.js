@@ -25,4 +25,9 @@ export const COURTS = [
 ];
 export const COURT_IDS = new Set(COURTS.map((c) => c.id));
 
-export const LIMITS = { name: [3, 100], enrollmentNo: [2, 40], bar: [2, 100], address: [5, 300], qualifications: 200, email: 120, areas: 6 };
+export const LIMITS = {
+  name: [3, 100], enrollmentNo: [2, 40], bar: [2, 100], address: [5, 300], qualifications: 200, email: 120, areas: 6,
+  education: 600, achievements: 600, cases: 1000000, certificates: 5, certificateBytes: 3 * 1024 * 1024,
+};
+/** Certificate files: scans or photos of the Bar Council enrolment certificate and degrees. Same limits as the storage bucket. */
+export const CERT_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'application/pdf': 'pdf' };
