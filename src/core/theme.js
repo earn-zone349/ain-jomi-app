@@ -7,7 +7,7 @@ import { setStatusBar } from './platform.js';
 export const THEME_MODES = ['system', 'light', 'dark'];
 export const TEXT_SIZES = ['small', 'normal', 'large'];
 
-const STATUS_COLORS = { light: '#0f5c4d', dark: '#0e1513' };
+const STATUS_COLORS = { light: '#0b5d3b', dark: '#0f1815' };
 
 let mode = 'system';
 let size = 'normal';

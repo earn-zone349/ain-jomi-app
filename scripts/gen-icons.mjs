@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const GREEN = '#0f5c4d';
+const GREEN = '#0b5d3b';
 const WHITE = '#ffffff';
 
 // Scales of justice, drawn on a 108x108 adaptive-icon canvas, kept inside the 66dp safe zone.
